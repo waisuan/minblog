@@ -45,11 +45,7 @@ def login():
         username = request.form['username']
         password = request.form['password']
         result = db.users.find({"username": username, "password": password})
-        # count = 0
-        # for user in result:
-        #    count += 1
 
-        # if count == 0:
         if result.count() == 0:
             error = 'Invalid user'
         else:
