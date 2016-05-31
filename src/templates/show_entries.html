@@ -1,7 +1,7 @@
 {% extends "layout.html" %}
 {% block body %}
 {% if session.logged_in %}
-<form action="{{ url_for('add_entry') }}" method=post class=add-entry>
+<!--<form action="{{ url_for('add_entry') }}" method=post class=add-entry>
     <dl>
         <dt>Title:
         <dd><input type=text size=30 name=title>
@@ -9,15 +9,40 @@
         <dd><textarea name=text rows=5 cols=40></textarea>
         <dd><input type=submit value=Share>
     </dl>
-</form>
+</form>-->
 
-<ul class=entries>
+<!--<ul class=entries>
     {% for entry in entries %}
     <li><h2>{{ entry.title }}</h2>{{ entry.text|safe }}
         {% else %}
     <li><em>Unbelievable. No entries here so far</em>
         {% endfor %}
-</ul>
+</ul>-->
+{% for entry in entries %}
+    <div class="blogentries">
+        <div class="entry-header">
+            <h2>{{ entry.title }}</h2>
+            <p>by: {{ entry.author }} | on: {{ entry.date }} {{ entry.time }}</p>
+        </div>
+        <p>{{ entry.text|safe }}</p>
+    </div>
+{% endfor %}
+
+{% if entries|length == 0 %}
+<div class="showentries-alert alert alert-info"
+     role="alert">
+    <strong>Oops!</strong> You have no posts at the moment. Why not <strong><a href="{{ url_for('add_entry') }}">create</a></strong> some?
+</div>
+{% endif %}
+
+{% if has_more_pages %}
+<nav>
+  <ul class="pager">
+    <li><a href="#">Previous</a></li>
+    <li><a href="{{ url_for('show_entries', navigate='next') }}">Next</a></li>
+  </ul>
+</nav>
+{% endif %}
 
 {% else %}
 <div class="jumbotron">

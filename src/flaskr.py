@@ -2,6 +2,9 @@
 from flask import Flask, request, session, redirect, url_for, \
     abort, render_template, flash
 from pymongo import MongoClient
+import time
+import re
+import Paginator
 
 # configuration
 DEBUG = True
@@ -14,6 +17,7 @@ app = Flask(__name__)
 app.config.from_object(__name__)
 client = MongoClient()
 db = client.flaskr
+paginator = Paginator.Paginator(3)
 
 
 def connect_db():
@@ -21,44 +25,73 @@ def connect_db():
 
 
 @app.route('/')
-def show_entries():
-    entries_coll = db.entries
-    all_entries = entries_coll.find()
-    entries = [dict(title=entry['title'], text=entry['text']) for entry in all_entries]
-    return render_template('show_entries.html', entries=entries)
+@app.route('/<navigate>')
+def show_entries(navigate=None):
+    curr_user = session['username']
+    if navigate == 'next':
+        all_entries = paginator.page_next(curr_user)
+    else:
+        entries_coll = db.entries
+        all_entries = entries_coll.find({"username": curr_user})
+        paginator.insert(curr_user, all_entries)
+        all_entries = paginator.page_next(curr_user)
+    #print all_entries
+    has_more_pages = paginator.has_more_pages(curr_user)
+    entries = [dict(author=entry['username'],
+                    date=entry['date'],
+                    time=entry['time'],
+                    title=entry['title'],
+                    text=entry['text']) for entry in all_entries]
+    return render_template('show_entries.html', entries=entries, has_more_pages=has_more_pages)
 
 
-@app.route('/add', methods=['POST'])
+@app.route('/new', methods=['GET', 'POST'])
 def add_entry():
-    if not session.get('logged_in'):
-        abort(401)
-    entries_coll = db.entries
-    entries_coll.insert_one({"title": request.form['title'], "text": request.form['text']})
-    flash('New entry was successfully posted')
-    return redirect(url_for('show_entries'))
+    # if not session.get('logged_in'):
+    #    abort(401)
+    # entries_coll = db.entries
+    # entries_coll.insert_one({"title": request.form['title'], "text": request.form['text']})
+    # flash('New entry was successfully posted')
+    # return redirect(url_for('show_entries'))
+    if request.method == 'POST':
+        entry_text = request.form['entry_text']
+        regexp = re.compile(r'<div>')
+        if regexp.search(request.form['entry_text']) is not None:
+            entry_text = '<div>' + re.sub('<div>', '</div><div>', request.form['entry_text'], 1)
+        db.entries.insert_one({"username": session['username'],
+                               "date": time.strftime("%d/%m/%Y"),
+                               "time": time.strftime("%I:%M %p"),
+                               "title": request.form['post_title'],
+                               "text": entry_text})
+        return render_template('add_entry.html', success=True)
+
+    return render_template('add_entry.html')
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    error = None
+    user_does_not_exist = None
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        result = db.users.find({"username": username, "password": password})
+        exists = db.users.find({"username": username, "password": password})
 
-        if result.count() == 0:
-            error = 'Invalid user'
+        if exists.count() == 0:
+            user_does_not_exist = 'User does not exist!'
         else:
+            # TODO: is_logged_in
             session['logged_in'] = True
-            flash('You were logged in')
+            session['username'] = username
+            # flash('You were logged in')
             return redirect(url_for('show_entries'))
-    return render_template('login.html', error=error)
+
+    return render_template('login.html', user_does_not_exist=user_does_not_exist)
 
 
 @app.route('/logout')
 def logout():
     session.pop('logged_in', None)
-    flash('You were logged out')
+    # flash('You were logged out')
     return redirect(url_for('show_entries'))
 
 
@@ -91,7 +124,6 @@ def register():
                 (email_error is None) and \
                 (passwd_error is None) and \
                 (confirm_pwd_error is None):
-            db.users.insert_one({"username": username, "password": password, "email": email})
             success = True
 
         if success is False:
@@ -103,6 +135,16 @@ def register():
                                    passwd_error=passwd_error,
                                    confirm_pwd_error=confirm_pwd_error,
                                    success=success)
+
+        exists = db.users.find({"username": username})
+        if exists.count() != 0:
+            return render_template('register.html',
+                                   username=username,
+                                   email=email,
+                                   success=False,
+                                   user_exists='User already exists!')
+
+        db.users.insert_one({"username": username, "password": password, "email": email})
         return render_template('register.html',
                                username='',
                                username_error=username_error,

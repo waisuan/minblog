@@ -11,18 +11,22 @@ body {
 .footer {
   padding-right: 15px;
   padding-left: 15px;
+  font-family: 'Roboto Condensed', sans-serif;
 }
 
 /* Custom page header */
 .header {
-  padding-bottom: 20px;
+  padding-bottom: 10px;
+  /*padding-bottom: 20px;*/
   border-bottom: 1px solid #e5e5e5;
+  /*font-size: 16px;*/
 }
 /* Make the masthead heading the same height as the navigation */
 .header h3 {
   margin-top: 0;
   margin-bottom: 0;
   line-height: 40px;
+  /*font-family: 'Roboto Condensed', sans-serif;*/
 }
 
 /* Custom page footer */
@@ -38,6 +42,25 @@ body {
   padding-top: 19px;
   color: #777;
   border-top: 1px solid #e5e5e5;*/
+}
+
+.navbar-brand {
+    font-size: 22px;
+}
+
+.nav {
+    font-size: 16px;
+}
+
+.nav > li > a {
+  background: 0 !important;
+  color: #777 !important;
+  box-shadow: none !important;
+  -webkit-box-shadow: none !important;
+}
+
+.nav > li > a:hover {
+  color: #333 !important;
 }
 
 /* Customize container */
