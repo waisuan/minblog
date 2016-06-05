@@ -1,46 +1,40 @@
 {% extends "layout.html" %}
 {% block body %}
 {% if session.logged_in %}
-<!--<form action="{{ url_for('add_entry') }}" method=post class=add-entry>
-    <dl>
-        <dt>Title:
-        <dd><input type=text size=30 name=title>
-        <dt>Text:
-        <dd><textarea name=text rows=5 cols=40></textarea>
-        <dd><input type=submit value=Share>
-    </dl>
-</form>-->
 
-<!--<ul class=entries>
-    {% for entry in entries %}
-    <li><h2>{{ entry.title }}</h2>{{ entry.text|safe }}
-        {% else %}
-    <li><em>Unbelievable. No entries here so far</em>
-        {% endfor %}
-</ul>-->
 {% for entry in entries %}
-    <div class="blogentries">
-        <div class="entry-header">
-            <h2>{{ entry.title }}</h2>
-            <p>by: {{ entry.author }} | on: {{ entry.date }} {{ entry.time }}</p>
-        </div>
+<div id="blogentries" class="blogentries">
+    <div class="entry-header">
+        <h2>{{ entry.title }}</h2>
+        <p>by: {{ entry.author }} | on: {{ entry.date }} {{ entry.time }}</p>
+    </div>
+    <div id="{{ entry.id }}" class="entry-entry">
         <p>{{ entry.text|safe }}</p>
     </div>
+    <!--<p>{{ entry.text|safe }}</p>-->
+    <a id="edit" href="javascript:void(0);">Edit</a>
+    <a id="delete" href="javascript:void(0);">Delete</a>
+    <button id="submit-edit" class="btn btn-primary" type="submit">Submit</button>
+    <button id="cancel-edit" class="btn btn-default" type="submit">Cancel</button>
+</div>
 {% endfor %}
 
 {% if entries|length == 0 %}
 <div class="showentries-alert alert alert-info"
      role="alert">
-    <strong>Oops!</strong> You have no posts at the moment. Why not <strong><a href="{{ url_for('add_entry') }}">create</a></strong> some?
+    <strong>Oops!</strong> You have no posts at the moment. Why not <strong><a
+        href="{{ url_for('add_entry') }}">create</a></strong> some?
 </div>
-{% endif %}
-
-{% if has_more_pages %}
+{% else %}
 <nav>
-  <ul class="pager">
-    <li><a href="#">Previous</a></li>
-    <li><a href="{{ url_for('show_entries', navigate='next') }}">Next</a></li>
-  </ul>
+    <ul class="pager">
+        {% if has_prev_pages %}
+        <li><a href="{{ url_for('show_entries', navigate='prev') }}">Previous</a></li>
+        {% endif %}
+        {% if has_more_pages %}
+        <li><a href="{{ url_for('show_entries', navigate='next') }}">Next</a></li>
+        {% endif %}
+    </ul>
 </nav>
 {% endif %}
 
@@ -55,4 +49,90 @@
             class="glyphicon glyphicon-log-in"></span> Login</a></p>
 </div>
 {% endif %}
+
+<script>
+    var entries_under_edit = {};
+    var nicEditors = {};
+
+    $( "div.blogentries" )
+      .mouseenter(function() {
+        var blogentries_id = $( this ).attr('id');
+        var entry_id = $( this ).find(".entry-entry").attr('id');
+        var blog_and_entry_id = blogentries_id+'_'+entry_id;
+        console.log(''+blog_and_entry_id);
+        if (!(blog_and_entry_id in entries_under_edit)) {
+            $( this ).find( "#edit" ).show();
+            $( this ).find( "#delete" ).show();
+        }
+      })
+      .mouseleave(function() {
+        var blogentries_id = $( this ).attr('id');
+        var entry_id = $( this ).find(".entry-entry").attr('id');
+        var blog_and_entry_id = blogentries_id+'_'+entry_id;
+        if (!(blog_and_entry_id in entries_under_edit)) {
+            $( this ).find( "#edit" ).hide();
+            $( this ).find( "#delete" ).hide();
+        }
+      });
+
+    $("div.blogentries #edit").click(function() {
+        var blogentries_id = $( this ).closest( ".blogentries" ).attr('id');
+        console.log(''+blogentries_id);
+        var entry_id = $( this ).closest( ".blogentries" ).find(".entry-entry").attr('id');
+        console.log(''+entry_id);
+        var submit_btn = $( this ).closest( ".blogentries" ).find("#submit-edit");
+        var cancel_btn = $( this ).closest( ".blogentries" ).find("#cancel-edit");
+        var delete_btn = $( this ).closest( ".blogentries" ).find("#delete");
+        $( this ).hide();
+        $( delete_btn ).hide();
+        $( submit_btn ).show();
+        $( cancel_btn ).show();
+        $("#"+entry_id).css({'width':'100%',
+                             'height': '350px',
+                             'max-height': '350px'});
+        nicEditors[entry_id] = new nicEditor({ maxHeight : 359,
+                                buttonList : [
+                                'fontSize',
+                                'fontFamily',
+                                'fontFormat',
+                                'bold',
+                                'italic',
+                                'underline',
+                                'strikeThrough',
+                                'left',
+                                'center',
+                                'right',
+                                'justify',
+                                'ol',
+                                'ul',
+                                'forecolor',
+                                'indent',
+                                'outdent',
+                                'hr',
+                                'link']
+                                }).panelInstance(
+                                entry_id, {hasPanel : true}
+                                );
+        entries_under_edit[blogentries_id+'_'+entry_id] = 1;
+    });
+
+    $("div.blogentries #cancel-edit").click(function() {
+        var blogentries_id = $( this ).closest( ".blogentries" ).attr('id');
+        var entry_id = $( this ).closest( ".blogentries" ).find(".entry-entry").attr('id');
+        var submit_btn = $( this ).closest( ".blogentries" ).find("#submit-edit");
+        var edit_btn = $( this ).closest( ".blogentries" ).find("#edit");
+        var delete_btn = $( this ).closest( ".blogentries" ).find("#delete");
+        $( this ).hide();
+        $( submit_btn ).hide();
+        $( delete_btn ).show();
+        $( edit_btn ).show();
+        $("#"+entry_id).css({'width':'',
+                             'height': '',
+                             'max-height': ''});
+        nicEditors[entry_id].removeInstance(entry_id);
+        delete nicEditors[entry_id];
+        delete entries_under_edit[blogentries_id+'_'+entry_id];
+    });
+</script>
+
 {% endblock %}

@@ -1,7 +1,8 @@
 <!doctype html>
 <html>
 <title>minblog</title>
-<link rel="shortcut icon" type="image/x-icon" href="https://cdn0.iconfinder.com/data/icons/picons-social/57/108-medium-128.png" />
+<link rel="shortcut icon" type="image/x-icon"
+      href="https://cdn0.iconfinder.com/data/icons/picons-social/57/108-medium-128.png"/>
 
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
       integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
@@ -13,6 +14,7 @@
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='show_entries.css') }}">
 <link rel=stylesheet type=text/css href="{{ url_for('static', filename='add_entry.css') }}">
 <!--<link rel=stylesheet type=text/css href="{{ url_for('static', filename='test_style.css') }}">-->
+<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
 
 <body>
 <div class="container">
@@ -31,12 +33,14 @@
                 <!--<li role="presentation"><a href="{{ url_for('logout') }}">Logout</a></li>-->
                 <li class="dropdown">
                     <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true"
-                       aria-expanded="false"><span class="glyphicon glyphicon-user"></span> {{ session.username }} <span class="caret"></span></a>
+                       aria-expanded="false"><span class="glyphicon glyphicon-user"></span> {{ session.username }} <span
+                            class="caret"></span></a>
                     <ul class="dropdown-menu">
                         <li><a href="#">My Profile</a></li>
                         <li><a href="#">My Posts</a></li>
                         <li role="separator" class="divider"></li>
-                        <li><a href="{{ url_for('add_entry') }}"><span class="glyphicon glyphicon-plus"></span> New Post</a></li>
+                        <li><a href="{{ url_for('add_entry') }}"><span class="glyphicon glyphicon-plus"></span> New Post</a>
+                        </li>
                         <li role="separator" class="divider"></li>
                         <li><a href="{{ url_for('logout') }}">Logout</a></li>
                     </ul>
@@ -87,6 +91,7 @@ buttonList : [
 'hr',
 'link']});
 });
+
 </script>
 <!--<script type="text/javascript">bkLib.onDomLoaded(nicEditors.allTextAreas);</script>-->
 </body>

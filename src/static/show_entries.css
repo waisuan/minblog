@@ -1,0 +1,31 @@
+.blogentries {
+    max-width:580px;
+    margin: 0 auto;
+    /*padding-bottom: 20px;*/
+    margin-bottom: 50px;
+    font-family: 'Roboto Condensed', sans-serif;
+}
+
+.blogentries a {
+    margin-top: 5px;
+    margin-right: 15px;
+    display: none;
+}
+
+.blogentries button {
+    margin-top: 5px;
+    display: none;
+}
+
+.entry-header {
+    margin-bottom: 12px;
+    padding-bottom: 2px;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.showentries-alert {
+    margin-top: 10px;
+}
+
+.entry-entry {
+}

@@ -5,16 +5,20 @@ from pymongo import MongoClient
 import time
 import re
 import Paginator
+import os
 
 # configuration
 DEBUG = True
-SECRET_KEY = 'development key'
-USERNAME = 'admin'
-PASSWORD = 'default'
+SECRET_KEY = '\xf6\x82R\xbeK\xa1QD\x03\xaa\x9a-\xd9\x1d\xc0$7XK\x0eo6\x1d\x05'
+# development key
+# \xf6\x82R\xbeK\xa1QD\x03\xaa\x9a-\xd9\x1d\xc0$7XK\x0eo6\x1d\x05
+# USERNAME = 'admin'
+# PASSWORD = 'default'
 
 # create our little application :)
 app = Flask(__name__)
 app.config.from_object(__name__)
+# app.secret_key = os.urandom(24)
 client = MongoClient()
 db = client.flaskr
 paginator = Paginator.Paginator(3)
@@ -30,19 +34,25 @@ def show_entries(navigate=None):
     curr_user = session['username']
     if navigate == 'next':
         all_entries = paginator.page_next(curr_user)
+    elif navigate == 'prev':
+        all_entries = paginator.page_prev(curr_user)
     else:
         entries_coll = db.entries
         all_entries = entries_coll.find({"username": curr_user})
         paginator.insert(curr_user, all_entries)
         all_entries = paginator.page_next(curr_user)
-    #print all_entries
+    # print all_entries
     has_more_pages = paginator.has_more_pages(curr_user)
-    entries = [dict(author=entry['username'],
+    has_prev_pages = paginator.has_prev_pages(curr_user)
+    entries = [dict(id=entry['_id'],
+                    author=entry['username'],
                     date=entry['date'],
                     time=entry['time'],
                     title=entry['title'],
                     text=entry['text']) for entry in all_entries]
-    return render_template('show_entries.html', entries=entries, has_more_pages=has_more_pages)
+    return render_template('show_entries.html', entries=entries,
+                           has_more_pages=has_more_pages,
+                           has_prev_pages=has_prev_pages)
 
 
 @app.route('/new', methods=['GET', 'POST'])

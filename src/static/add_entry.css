@@ -1,0 +1,41 @@
+.addentry {
+    max-width:600px;
+    margin: 0 auto;
+}
+
+.addentry-header{
+    margin-bottom: 20px;
+}
+
+.addentry .form-control {
+  position: relative;
+  height: auto;
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box;
+  padding: 10px;
+  font-size: 16px;
+}
+
+.addentry .form-control:focus {
+  z-index: 2;
+}
+
+.addentry input[type="text"] {
+  margin-bottom: 10px;
+}
+
+.addentry textarea {
+    width:100%;
+    height: 350px;
+    max-height: 350px;
+    /*resize: none;*/
+}
+
+.addentry .btn {
+  margin-top: 10px;
+}
+
+.addentry-alert {
+    margin-top: 10px;
+}

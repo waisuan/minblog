@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+{% block body %}
+{% if session.logged_in %}
+
+<form class="addentry"action="{{ url_for('add_entry') }}" method=post>
+    <h2 class="addentry-header">New Post</h2>
+    <label for="post_title" class="sr-only">Title</label>
+    <input type="text" id="post_title" name="post_title" class="form-control" placeholder="Title" required autofocus>
+    <label for="entry_text" class="sr-only">Entry</label>
+    <!-- rows=10 cols=80-->
+    <textarea id="entry_text" name="entry_text"></textarea>
+    <button class="btn btn-lg btn-primary btn-block" type="submit" value=Add>Create</button>
+    {% if success %}
+    <div class="addentry-alert alert alert-success alert-dismissible"
+         role="alert">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                aria-hidden="true">&times;</span></button>
+        <strong>Done!</strong> Your post has been created!
+    </div>
+    {% endif %}
+    <!--<dl>
+        <dt>Title:
+        <dd><input type=text size=30 name=title>
+        <dt>Text:
+        <dd><textarea name=text rows=5 cols=40></textarea>
+        <dd><input type=submit value=Share>
+    </dl>-->
+</form>
+
+{% else %}
+<div class="jumbotron">
+    <p><a class="btn btn-lg btn-success" href="{{ url_for('login') }}" role="button"><span
+            class="glyphicon glyphicon-log-in"></span> Login</a></p>
+</div>
+{% endif %}
+{% endblock %}
