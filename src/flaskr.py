@@ -77,6 +77,11 @@ def add_entry():
 
     return render_template('add_entry.html')
 
+@app.route('/<entry_id>', methods=['GET', 'POST'])
+def edit_entry(entry_id=None):
+    print entry_id
+    print request.form['entry_text']
+    return redirect(url_for('show_entries'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():

@@ -17,6 +17,10 @@
     display: none;
 }
 
+.blogentries textarea {
+    display: none;
+}
+
 .entry-header {
     margin-bottom: 12px;
     padding-bottom: 2px;
@@ -27,5 +31,5 @@
     margin-top: 10px;
 }
 
-.entry-entry {
-}
+/*.entry-entry {
+}*/

@@ -4,18 +4,22 @@
 
 {% for entry in entries %}
 <div id="blogentries" class="blogentries">
-    <div class="entry-header">
-        <h2>{{ entry.title }}</h2>
-        <p>by: {{ entry.author }} | on: {{ entry.date }} {{ entry.time }}</p>
-    </div>
-    <div id="{{ entry.id }}" class="entry-entry">
-        <p>{{ entry.text|safe }}</p>
-    </div>
-    <!--<p>{{ entry.text|safe }}</p>-->
-    <a id="edit" href="javascript:void(0);">Edit</a>
-    <a id="delete" href="javascript:void(0);">Delete</a>
-    <button id="submit-edit" class="btn btn-primary" type="submit">Submit</button>
-    <button id="cancel-edit" class="btn btn-default" type="submit">Cancel</button>
+    <form action="{{ url_for('edit_entry', entry_id=entry.id) }}" method=post>
+        <div class="entry-header">
+            <h2 data-toggle="tooltip" data-placement="left" title="Modified on: {{ entry.date }}">{{ entry.title }}</h2>
+            <p>by: {{ entry.author }} | on: {{ entry.date }}, {{ entry.time }}</p>
+        </div>
+        <div id="entry_just_text">
+            <p>{{ entry.text|safe }}</p>
+        </div>
+        <textarea id="{{ entry.id }}" class="entry_edit_text" name="entry_text">{{ entry.text|safe }}</textarea>
+        <!--<p>{{ entry.text|safe }}</p>-->
+        <a id="edit" href="javascript:void(0);">Edit</a>
+        <a id="delete" href="javascript:void(0);">Delete</a>
+        <button id="submit-edit" class="btn btn-primary" type="submit">Submit</button>
+        <button id="cancel-edit" class="btn btn-default" type="button">Cancel</button>
+    </form>
+
 </div>
 {% endfor %}
 
@@ -51,13 +55,17 @@
 {% endif %}
 
 <script>
+    $(function() {
+        $('[data-toggle="tooltip"]').tooltip();
+    });
+
     var entries_under_edit = {};
     var nicEditors = {};
 
     $( "div.blogentries" )
       .mouseenter(function() {
         var blogentries_id = $( this ).attr('id');
-        var entry_id = $( this ).find(".entry-entry").attr('id');
+        var entry_id = $( this ).find(".entry_edit_text").attr('id');
         var blog_and_entry_id = blogentries_id+'_'+entry_id;
         console.log(''+blog_and_entry_id);
         if (!(blog_and_entry_id in entries_under_edit)) {
@@ -67,7 +75,7 @@
       })
       .mouseleave(function() {
         var blogentries_id = $( this ).attr('id');
-        var entry_id = $( this ).find(".entry-entry").attr('id');
+        var entry_id = $( this ).find(".entry_edit_text").attr('id');
         var blog_and_entry_id = blogentries_id+'_'+entry_id;
         if (!(blog_and_entry_id in entries_under_edit)) {
             $( this ).find( "#edit" ).hide();
@@ -77,9 +85,8 @@
 
     $("div.blogentries #edit").click(function() {
         var blogentries_id = $( this ).closest( ".blogentries" ).attr('id');
-        console.log(''+blogentries_id);
-        var entry_id = $( this ).closest( ".blogentries" ).find(".entry-entry").attr('id');
-        console.log(''+entry_id);
+        var entry_id = $( this ).closest( ".blogentries" ).find(".entry_edit_text").attr('id');
+        var entry_just_text = $( this ).closest( ".blogentries" ).find("#entry_just_text");
         var submit_btn = $( this ).closest( ".blogentries" ).find("#submit-edit");
         var cancel_btn = $( this ).closest( ".blogentries" ).find("#cancel-edit");
         var delete_btn = $( this ).closest( ".blogentries" ).find("#delete");
@@ -87,6 +94,8 @@
         $( delete_btn ).hide();
         $( submit_btn ).show();
         $( cancel_btn ).show();
+        $( entry_just_text ).hide();
+        $( "#"+entry_id ).show();
         $("#"+entry_id).css({'width':'100%',
                              'height': '350px',
                              'max-height': '350px'});
@@ -118,7 +127,8 @@
 
     $("div.blogentries #cancel-edit").click(function() {
         var blogentries_id = $( this ).closest( ".blogentries" ).attr('id');
-        var entry_id = $( this ).closest( ".blogentries" ).find(".entry-entry").attr('id');
+        var entry_id = $( this ).closest( ".blogentries" ).find(".entry_edit_text").attr('id');
+        var entry_just_text = $( this ).closest( ".blogentries" ).find("#entry_just_text");
         var submit_btn = $( this ).closest( ".blogentries" ).find("#submit-edit");
         var edit_btn = $( this ).closest( ".blogentries" ).find("#edit");
         var delete_btn = $( this ).closest( ".blogentries" ).find("#delete");
@@ -126,13 +136,16 @@
         $( submit_btn ).hide();
         $( delete_btn ).show();
         $( edit_btn ).show();
+        $( entry_just_text ).show();
         $("#"+entry_id).css({'width':'',
                              'height': '',
                              'max-height': ''});
         nicEditors[entry_id].removeInstance(entry_id);
+        $( "#"+entry_id ).hide();
         delete nicEditors[entry_id];
         delete entries_under_edit[blogentries_id+'_'+entry_id];
     });
+
 </script>
 
 {% endblock %}

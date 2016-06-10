@@ -33,4 +33,33 @@
             class="glyphicon glyphicon-log-in"></span> Login</a></p>
 </div>
 {% endif %}
+
+<script>
+    $( document ).ready(function() {
+        new nicEditor({ maxHeight : 389,
+                                buttonList : [
+                                'fontSize',
+                                'fontFamily',
+                                'fontFormat',
+                                'bold',
+                                'italic',
+                                'underline',
+                                'strikeThrough',
+                                'left',
+                                'center',
+                                'right',
+                                'justify',
+                                'ol',
+                                'ul',
+                                'forecolor',
+                                'indent',
+                                'outdent',
+                                'hr',
+                                'link']
+                                }).panelInstance(
+                                'entry_text', {hasPanel : true}
+                                );
+    });
+</script>
+
 {% endblock %}
