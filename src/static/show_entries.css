@@ -6,18 +6,28 @@
     font-family: 'Roboto Condensed', sans-serif;
 }
 
-.blogentries a {
+/*.blogentries a {
     margin-top: 5px;
     margin-right: 15px;
     display: none;
-}
+}*/
 
 .blogentries button {
-    margin-top: 5px;
     display: none;
 }
 
-.blogentries textarea {
+.blogentries .form-control {
+  display: none;
+  /*position: relative;
+  height: auto;
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box;
+  padding: 10px;
+  font-size: 16px;*/
+}
+
+.blogentries .entry_edit_text {
     display: none;
 }
 

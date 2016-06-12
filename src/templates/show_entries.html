@@ -6,7 +6,8 @@
 <div id="blogentries" class="blogentries">
     <form action="{{ url_for('edit_entry', entry_id=entry.id) }}" method=post>
         <div class="entry-header">
-            <h2 data-toggle="tooltip" data-placement="left" title="Modified on: {{ entry.date }}">{{ entry.title }}</h2>
+            <h2 id="entry_just_title" data-toggle="tooltip" data-placement="left" title="Modified on: {{ entry.modified }}">{{ entry.title }}</h2>
+            <input type="text" id="entry_edit_title" name="entry_edit_title" class="form-control" value={{ entry.title }}>
             <p>by: {{ entry.author }} | on: {{ entry.date }}, {{ entry.time }}</p>
         </div>
         <div id="entry_just_text">
@@ -14,9 +15,11 @@
         </div>
         <textarea id="{{ entry.id }}" class="entry_edit_text" name="entry_text">{{ entry.text|safe }}</textarea>
         <!--<p>{{ entry.text|safe }}</p>-->
-        <a id="edit" href="javascript:void(0);">Edit</a>
-        <a id="delete" href="javascript:void(0);">Delete</a>
-        <button id="submit-edit" class="btn btn-primary" type="submit">Submit</button>
+        <!--<a id="edit" href="javascript:void(0);">Edit</a>-->
+        <!--<a id="delete" href="javascript:void(0);">Delete</a>-->
+        <button id="edit" class="btn btn-default" type="button">Edit</button>
+        <button id="submit-delete" name="delete-entry" class="btn btn-danger" type="submit">Delete</button>
+        <button id="submit-edit" name="edit-entry" class="btn btn-primary" type="submit">Submit</button>
         <button id="cancel-edit" class="btn btn-default" type="button">Cancel</button>
     </form>
 
@@ -44,11 +47,6 @@
 
 {% else %}
 <div class="jumbotron">
-    <!--<h1>Hello!</h1>
-      Go on. Discuss. Talk. Reveal. This is MIN_BLOG. No fancy stuff. Just words. Your words.
-      Whatever that is on your mind. Blog away.
-    <p class="lead"></p>
-    -->
     <p><a class="btn btn-lg btn-success" href="{{ url_for('login') }}" role="button"><span
             class="glyphicon glyphicon-log-in"></span> Login</a></p>
 </div>
@@ -70,7 +68,7 @@
         console.log(''+blog_and_entry_id);
         if (!(blog_and_entry_id in entries_under_edit)) {
             $( this ).find( "#edit" ).show();
-            $( this ).find( "#delete" ).show();
+            $( this ).find( "#submit-delete" ).show();
         }
       })
       .mouseleave(function() {
@@ -79,7 +77,7 @@
         var blog_and_entry_id = blogentries_id+'_'+entry_id;
         if (!(blog_and_entry_id in entries_under_edit)) {
             $( this ).find( "#edit" ).hide();
-            $( this ).find( "#delete" ).hide();
+            $( this ).find( "#submit-delete" ).hide();
         }
       });
 
@@ -87,18 +85,30 @@
         var blogentries_id = $( this ).closest( ".blogentries" ).attr('id');
         var entry_id = $( this ).closest( ".blogentries" ).find(".entry_edit_text").attr('id');
         var entry_just_text = $( this ).closest( ".blogentries" ).find("#entry_just_text");
+        var entry_just_title = $( this ).closest( ".blogentries" ).find("#entry_just_title");
+        var entry_edit_title = $( this ).closest( ".blogentries" ).find("#entry_edit_title");
         var submit_btn = $( this ).closest( ".blogentries" ).find("#submit-edit");
         var cancel_btn = $( this ).closest( ".blogentries" ).find("#cancel-edit");
-        var delete_btn = $( this ).closest( ".blogentries" ).find("#delete");
+        var delete_btn = $( this ).closest( ".blogentries" ).find("#submit-delete");
+
         $( this ).hide();
         $( delete_btn ).hide();
         $( submit_btn ).show();
         $( cancel_btn ).show();
         $( entry_just_text ).hide();
         $( "#"+entry_id ).show();
+        $( entry_just_title ).hide();
+        $( entry_edit_title ).show();
         $("#"+entry_id).css({'width':'100%',
                              'height': '350px',
                              'max-height': '350px'});
+        $( entry_edit_title ).css({ 'margin-bottom': '10px',
+                                    'height': 'auto',
+                                    'padding': '10px',
+                                    'font-size': '16px',
+                                    '-webkit-box-sizing': 'border-box',
+                                    '-moz-box-sizing': 'border-box',
+                                    'box-sizing': 'border-box'});
         nicEditors[entry_id] = new nicEditor({ maxHeight : 359,
                                 buttonList : [
                                 'fontSize',
@@ -129,17 +139,22 @@
         var blogentries_id = $( this ).closest( ".blogentries" ).attr('id');
         var entry_id = $( this ).closest( ".blogentries" ).find(".entry_edit_text").attr('id');
         var entry_just_text = $( this ).closest( ".blogentries" ).find("#entry_just_text");
+        var entry_just_title = $( this ).closest( ".blogentries" ).find("#entry_just_title");
+        var entry_edit_title = $( this ).closest( ".blogentries" ).find("#entry_edit_title");
         var submit_btn = $( this ).closest( ".blogentries" ).find("#submit-edit");
         var edit_btn = $( this ).closest( ".blogentries" ).find("#edit");
-        var delete_btn = $( this ).closest( ".blogentries" ).find("#delete");
+        var delete_btn = $( this ).closest( ".blogentries" ).find("#submit-delete");
+
         $( this ).hide();
         $( submit_btn ).hide();
         $( delete_btn ).show();
         $( edit_btn ).show();
         $( entry_just_text ).show();
-        $("#"+entry_id).css({'width':'',
+        $( entry_just_title ).show();
+        $( entry_edit_title ).hide();
+        /*$("#"+entry_id).css({'width':'',
                              'height': '',
-                             'max-height': ''});
+                             'max-height': ''});*/
         nicEditors[entry_id].removeInstance(entry_id);
         $( "#"+entry_id ).hide();
         delete nicEditors[entry_id];

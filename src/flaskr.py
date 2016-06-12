@@ -2,6 +2,7 @@
 from flask import Flask, request, session, redirect, url_for, \
     abort, render_template, flash
 from pymongo import MongoClient
+from bson import ObjectId
 import time
 import re
 import Paginator
@@ -49,7 +50,8 @@ def show_entries(navigate=None):
                     date=entry['date'],
                     time=entry['time'],
                     title=entry['title'],
-                    text=entry['text']) for entry in all_entries]
+                    text=entry['text'],
+                    modified=entry['modified']) for entry in all_entries]
     return render_template('show_entries.html', entries=entries,
                            has_more_pages=has_more_pages,
                            has_prev_pages=has_prev_pages)
@@ -65,23 +67,48 @@ def add_entry():
     # return redirect(url_for('show_entries'))
     if request.method == 'POST':
         entry_text = request.form['entry_text']
-        regexp = re.compile(r'<div>')
-        if regexp.search(request.form['entry_text']) is not None:
-            entry_text = '<div>' + re.sub('<div>', '</div><div>', request.form['entry_text'], 1)
+        entry_text = filter_entry_text(entry_text)
+        #regexp = re.compile(r'<div>')
+        #if regexp.search(request.form['entry_text']) is not None:
+        #    entry_text = '<div>' + re.sub('<div>', '</div><div>', request.form['entry_text'], 1)
+        now_date = time.strftime("%d/%m/%Y")
+        now_time = time.strftime("%I:%M %p")
         db.entries.insert_one({"username": session['username'],
-                               "date": time.strftime("%d/%m/%Y"),
-                               "time": time.strftime("%I:%M %p"),
+                               "date": now_date,
+                               "time": now_time,
                                "title": request.form['post_title'],
-                               "text": entry_text})
+                               "text": entry_text,
+                               "modified": now_date + ', ' + now_time})
         return render_template('add_entry.html', success=True)
 
     return render_template('add_entry.html')
 
+
+def filter_entry_text(entry_text):
+    regexp = re.compile(r'<div>')
+    if regexp.search(entry_text) is not None:
+        entry_text = '<div>' + re.sub('<div>', '</div><div>', entry_text, 1)
+    return entry_text
+
 @app.route('/<entry_id>', methods=['GET', 'POST'])
 def edit_entry(entry_id=None):
-    print entry_id
-    print request.form['entry_text']
+    if request.method == 'POST':
+        if 'edit-entry' in request.form:
+            entry_text = filter_entry_text(request.form['entry_text'])
+            now_date = time.strftime("%d/%m/%Y")
+            now_time = time.strftime("%I:%M %p")
+            db.entries.update_one({"_id": ObjectId(entry_id)},
+                                  {"$set": {"title": request.form['entry_edit_title'],
+                                            "text": entry_text,
+                                            "modified": now_date + ', ' + now_time}})
+        elif 'delete-entry' in request.form:
+            delete_entry(entry_id)
     return redirect(url_for('show_entries'))
+
+
+def delete_entry(entry_id=None):
+    db.entries.delete_one({"_id": ObjectId(entry_id)})
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
