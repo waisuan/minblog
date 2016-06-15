@@ -1,5 +1,5 @@
 .blogentries {
-    max-width:580px;
+    max-width: 580px;
     margin: 0 auto;
     /*padding-bottom: 20px;*/
     margin-bottom: 50px;
@@ -25,6 +25,10 @@
           box-sizing: border-box;
   padding: 10px;
   font-size: 16px;*/
+}
+
+.blogentries .entry_just_text {
+    max-height: 500px;
 }
 
 .blogentries .entry_edit_text {

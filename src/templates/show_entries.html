@@ -10,8 +10,9 @@
             <input type="text" id="entry_edit_title" name="entry_edit_title" class="form-control" value={{ entry.title }}>
             <p>by: {{ entry.author }} | on: {{ entry.date }}, {{ entry.time }}</p>
         </div>
-        <div id="entry_just_text">
+        <div id="entry_just_text" class="entry_just_text">
             <p>{{ entry.text|safe }}</p>
+            <a href="#" class="read_more">Continue >></a>
         </div>
         <textarea id="{{ entry.id }}" class="entry_edit_text" name="entry_text">{{ entry.text|safe }}</textarea>
         <!--<p>{{ entry.text|safe }}</p>-->
@@ -57,6 +58,25 @@
         $('[data-toggle="tooltip"]').tooltip();
     });
 
+    $(function() {
+    	$(".entry_just_text").dotdotdot({
+		    after: "a.read_more",
+		    callback: hideLinkIfNoTruncation
+	    });
+    });
+
+    function hideLinkIfNoTruncation(isTruncated, origContent) {
+        //console.log(isTruncated)
+        if (!isTruncated) {
+            var read_more = $( this ).find(".read_more");
+            //$( read_more ).css({'display': 'none'})
+            $( read_more ).hide();
+            /*var shouldBeAnAnchor = origContent.filter('.read_more')
+            console.log(shouldBeAnAnchor)
+            shouldBeAnAnchor.hide()*/
+        }
+    }
+
     var entries_under_edit = {};
     var nicEditors = {};
 
@@ -67,6 +87,8 @@
         var blog_and_entry_id = blogentries_id+'_'+entry_id;
         console.log(''+blog_and_entry_id);
         if (!(blog_and_entry_id in entries_under_edit)) {
+            $( this ).find( "#edit" ).css({'margin-top': '10px'});
+            $( this ).find( "#submit-delete" ).css({'margin-top': '10px'});
             $( this ).find( "#edit" ).show();
             $( this ).find( "#submit-delete" ).show();
         }
@@ -99,6 +121,9 @@
         $( "#"+entry_id ).show();
         $( entry_just_title ).hide();
         $( entry_edit_title ).show();
+
+        $( submit_btn ).css({'margin-top': '8px'});
+        $( cancel_btn ).css({'margin-top': '8px'});
         $("#"+entry_id).css({'width':'100%',
                              'height': '350px',
                              'max-height': '350px'});
@@ -109,6 +134,7 @@
                                     '-webkit-box-sizing': 'border-box',
                                     '-moz-box-sizing': 'border-box',
                                     'box-sizing': 'border-box'});
+
         nicEditors[entry_id] = new nicEditor({ maxHeight : 359,
                                 buttonList : [
                                 'fontSize',
