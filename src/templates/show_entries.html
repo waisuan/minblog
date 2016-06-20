@@ -6,8 +6,13 @@
 <div id="blogentries" class="blogentries">
     <form action="{{ url_for('edit_entry', entry_id=entry.id) }}" method=post>
         <div class="entry-header">
-            <h2 id="entry_just_title" data-toggle="tooltip" data-placement="left" title="Modified on: {{ entry.modified }}">{{ entry.title }}</h2>
-            <input type="text" id="entry_edit_title" name="entry_edit_title" class="form-control" value={{ entry.title }}>
+            <a class="blogentry-header" href="{{ url_for('full_entry', entry_id=entry.id) }}">
+                <h2 id="entry_just_title"
+                    data-toggle="tooltip" data-placement="left"
+                    title="Modified on: {{ entry.modified }}">{{ entry.title }}</h2>
+            </a>
+            <input type="text" id="entry_edit_title" name="entry_edit_title"
+                   class="form-control" value={{ entry.title }}>
             <p>by: {{ entry.author }} | on: {{ entry.date }}, {{ entry.time }}</p>
         </div>
         <div id="entry_just_text" class="entry_just_text">
@@ -18,10 +23,10 @@
         <!--<p>{{ entry.text|safe }}</p>-->
         <!--<a id="edit" href="javascript:void(0);">Edit</a>-->
         <!--<a id="delete" href="javascript:void(0);">Delete</a>-->
-        <button id="edit" class="btn btn-default" type="button">Edit</button>
-        <button id="submit-delete" name="delete-entry" class="btn btn-danger" type="submit">Delete</button>
-        <button id="submit-edit" name="edit-entry" class="btn btn-primary" type="submit">Submit</button>
-        <button id="cancel-edit" class="btn btn-default" type="button">Cancel</button>
+        <button id="edit" class="blogentry-button btn btn-default" type="button">Edit</button>
+        <button id="submit-delete" name="delete-entry" class="blogentry-button btn btn-danger" type="submit">Delete</button>
+        <button id="submit-edit" name="edit-entry" class="blogentry-button btn btn-primary" type="submit">Submit</button>
+        <button id="cancel-edit" class="blogentry-button btn btn-default" type="button">Cancel</button>
     </form>
 
 </div>
@@ -54,6 +59,12 @@
 {% endif %}
 
 <script>
+    /*$( document ).ready(function() {
+        tinymce.init({
+                selector: "#dummy"
+        });
+    });*/
+
     $(function() {
         $('[data-toggle="tooltip"]').tooltip();
     });
@@ -118,7 +129,7 @@
         $( submit_btn ).show();
         $( cancel_btn ).show();
         $( entry_just_text ).hide();
-        $( "#"+entry_id ).show();
+        //$( "#"+entry_id ).show();
         $( entry_just_title ).hide();
         $( entry_edit_title ).show();
 
@@ -134,8 +145,52 @@
                                     '-webkit-box-sizing': 'border-box',
                                     '-moz-box-sizing': 'border-box',
                                     'box-sizing': 'border-box'});
-
-        nicEditors[entry_id] = new nicEditor({ maxHeight : 359,
+        if (entry_id in nicEditors) {
+            tinymce.get(entry_id).show();
+        } else {
+            tinymce.init({
+                selector: "#"+entry_id,
+                plugins:    [
+                          'advlist autolink link image lists charmap print preview hr anchor pagebreak spellchecker',
+                          'searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking',
+                          'save table contextmenu directionality emoticons template paste textcolor'
+                        ],
+                style_formats:  [
+                                 {title: 'Headers', items: [
+                                  {title: 'Header 1', format: 'h1'},
+                                  {title: 'Header 2', format: 'h2'},
+                                  {title: 'Header 3', format: 'h3'},
+                                  {title: 'Header 4', format: 'h4'},
+                                  {title: 'Header 5', format: 'h5'},
+                                  {title: 'Header 6', format: 'h6'}
+                                 ]},
+                                 {title: 'Blocks', items: [
+                                  {title: 'Paragraph', format: 'p'},
+                                  {title: 'Blockquote', format: 'blockquote'},
+                                  {title: 'Div', format: 'div'},
+                                  {title: 'Pre', format: 'pre'}
+                                 ]},
+                                 {title: 'Alignment', items: [
+                                  {title: 'Left', icon: 'alignleft', format: 'alignleft'},
+                                  {title: 'Center', icon: 'aligncenter', format: 'aligncenter'},
+                                  {title: 'Right', icon: 'alignright', format: 'alignright'},
+                                  {title: 'Justify', icon: 'alignjustify', format: 'alignjustify'}
+                                 ]}
+                                ],
+                menu:   {
+                            edit: {title: 'Edit', items: 'undo redo | cut copy paste pastetext | selectall | searchreplace'},
+                            insert: {title : 'Insert', items : 'link | charmap'},
+                            view: {title : 'View', items : 'visualaid | preview fullscreen'},
+                            format: {title : 'Format', items : 'bold italic underline strikethrough superscript subscript | formats | removeformat'},
+                            table  : {title : 'Table' , items : 'inserttable tableprops deletetable | cell row column'},
+                            tools  : {title : 'Tools' , items : 'code'}
+                        },
+                /*menubar: 'edit insert view format table tools',*/
+                toolbar: 'forecolor fontselect fontsizeselect | bullist numlist outdent indent '
+            });
+            nicEditors[entry_id] = 1;
+        }
+        /*nicEditors[entry_id] = new nicEditor({ maxHeight : 359,
                                 buttonList : [
                                 'fontSize',
                                 'fontFamily',
@@ -157,7 +212,7 @@
                                 'link']
                                 }).panelInstance(
                                 entry_id, {hasPanel : true}
-                                );
+                                );*/
         entries_under_edit[blogentries_id+'_'+entry_id] = 1;
     });
 
@@ -181,9 +236,10 @@
         /*$("#"+entry_id).css({'width':'',
                              'height': '',
                              'max-height': ''});*/
-        nicEditors[entry_id].removeInstance(entry_id);
-        $( "#"+entry_id ).hide();
-        delete nicEditors[entry_id];
+        /*nicEditors[entry_id].removeInstance(entry_id);*/
+        //$( "#"+entry_id ).hide();
+        /*delete nicEditors[entry_id];*/
+        tinymce.get(entry_id).hide();
         delete entries_under_edit[blogentries_id+'_'+entry_id];
     });
 

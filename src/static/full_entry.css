@@ -1,0 +1,10 @@
+.full-entry {
+    max-width:600px;
+    margin: 0 auto;
+}
+
+.full-entry .fullentry-header {
+    margin-bottom: 12px;
+    padding-bottom: 2px;
+    border-bottom: 1px solid #e5e5e5;
+}

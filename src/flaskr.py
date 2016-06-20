@@ -68,8 +68,8 @@ def add_entry():
     if request.method == 'POST':
         entry_text = request.form['entry_text']
         entry_text = filter_entry_text(entry_text)
-        #regexp = re.compile(r'<div>')
-        #if regexp.search(request.form['entry_text']) is not None:
+        # regexp = re.compile(r'<div>')
+        # if regexp.search(request.form['entry_text']) is not None:
         #    entry_text = '<div>' + re.sub('<div>', '</div><div>', request.form['entry_text'], 1)
         now_date = time.strftime("%d/%m/%Y")
         now_time = time.strftime("%I:%M %p")
@@ -90,7 +90,8 @@ def filter_entry_text(entry_text):
         entry_text = '<div>' + re.sub('<div>', '</div><div>', entry_text, 1)
     return entry_text
 
-@app.route('/<entry_id>', methods=['GET', 'POST'])
+
+@app.route('/edit/<entry_id>', methods=['GET', 'POST'])
 def edit_entry(entry_id=None):
     if request.method == 'POST':
         if 'edit-entry' in request.form:
@@ -108,6 +109,24 @@ def edit_entry(entry_id=None):
 
 def delete_entry(entry_id=None):
     db.entries.delete_one({"_id": ObjectId(entry_id)})
+
+
+@app.route('/show/<entry_id>', methods=['GET'])
+def full_entry(entry_id=None):
+    entry = None
+    if request.method == 'GET':
+        # print entry_id
+        entries_coll = db.entries
+        entry = entries_coll.find_one({"_id": ObjectId(entry_id)})
+        if len(entry) != 0:
+            entry = dict(id=entry['_id'],
+                         author=entry['username'],
+                         date=entry['date'],
+                         time=entry['time'],
+                         title=entry['title'],
+                         text=entry['text'],
+                         modified=entry['modified'])
+    return render_template('full_entry.html', entry=entry)
 
 
 @app.route('/login', methods=['GET', 'POST'])

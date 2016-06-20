@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+{% block body %}
+{% if session.logged_in %}
+
+<div class="full-entry">
+    <div class="fullentry-header">
+        <h1>{{ entry.title }}</h1>
+        <p>by: {{ entry.author }} | on: {{ entry.date }}, {{ entry.time }}</p>
+    </div>
+    <p>{{ entry.text|safe }}</p>
+</div>
+
+{% else %}
+
+<div class="jumbotron">
+    <p><a class="btn btn-lg btn-success" href="{{ url_for('login') }}" role="button"><span
+            class="glyphicon glyphicon-log-in"></span> Login</a></p>
+</div>
+
+{% endif %}
+
+{% endblock %}
