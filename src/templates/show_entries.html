@@ -24,8 +24,10 @@
         <!--<a id="edit" href="javascript:void(0);">Edit</a>-->
         <!--<a id="delete" href="javascript:void(0);">Delete</a>-->
         <button id="edit" class="blogentry-button btn btn-default" type="button">Edit</button>
-        <button id="submit-delete" name="delete-entry" class="blogentry-button btn btn-danger" type="submit">Delete</button>
-        <button id="submit-edit" name="edit-entry" class="blogentry-button btn btn-primary" type="submit">Submit</button>
+        <button id="submit-delete" name="delete-entry" class="blogentry-button btn btn-danger" type="submit">Delete
+        </button>
+        <button id="submit-edit" name="edit-entry" class="blogentry-button btn btn-primary" type="submit">Submit
+        </button>
         <button id="cancel-edit" class="blogentry-button btn btn-default" type="button">Cancel</button>
     </form>
 
@@ -150,6 +152,7 @@
         } else {
             tinymce.init({
                 selector: "#"+entry_id,
+                browser_spellcheck: true,
                 plugins:    [
                           'advlist autolink link image lists charmap print preview hr anchor pagebreak spellchecker',
                           'searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking',
@@ -242,6 +245,7 @@
         tinymce.get(entry_id).hide();
         delete entries_under_edit[blogentries_id+'_'+entry_id];
     });
+
 
 </script>
 

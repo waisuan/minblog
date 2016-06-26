@@ -8,3 +8,32 @@
     padding-bottom: 2px;
     border-bottom: 1px solid #e5e5e5;
 }
+
+.full-entry .fullentry-text {
+    padding-bottom: 50px;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.full-entry .fullentry-newcomment {
+    width: 100%;
+    height: 150px;
+    max-height: 150px;
+    margin-top: 10px;
+}
+
+.full-entry .fullentry-submitcomment {
+    overflow: hidden;
+}
+
+.full-entry .fullentry-submitcomment-btn {
+    float: right;
+}
+
+.full-entry .fullentry-comment {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.fullentry-comment a {
+    text-decoration: none;
+}

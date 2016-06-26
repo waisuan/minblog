@@ -1,12 +1,12 @@
 # all the imports
 from flask import Flask, request, session, redirect, url_for, \
-    abort, render_template, flash
+    abort, render_template, flash, jsonify
 from pymongo import MongoClient
 from bson import ObjectId
 import time
-import re
-import Paginator
 import os
+import Paginator
+import Helper
 
 # configuration
 DEBUG = True
@@ -31,6 +31,7 @@ def connect_db():
 
 @app.route('/')
 @app.route('/<navigate>')
+# @app.route('/<username>')
 def show_entries(navigate=None):
     curr_user = session['username']
     if navigate == 'next':
@@ -45,7 +46,7 @@ def show_entries(navigate=None):
     # print all_entries
     has_more_pages = paginator.has_more_pages(curr_user)
     has_prev_pages = paginator.has_prev_pages(curr_user)
-    entries = [dict(id=entry['_id'],
+    entries = [dict(id=str(entry['_id']),
                     author=entry['username'],
                     date=entry['date'],
                     time=entry['time'],
@@ -61,13 +62,9 @@ def show_entries(navigate=None):
 def add_entry():
     # if not session.get('logged_in'):
     #    abort(401)
-    # entries_coll = db.entries
-    # entries_coll.insert_one({"title": request.form['title'], "text": request.form['text']})
-    # flash('New entry was successfully posted')
-    # return redirect(url_for('show_entries'))
     if request.method == 'POST':
         entry_text = request.form['entry_text']
-        entry_text = filter_entry_text(entry_text)
+        entry_text = Helper.filter_entry_text(entry_text)
         # regexp = re.compile(r'<div>')
         # if regexp.search(request.form['entry_text']) is not None:
         #    entry_text = '<div>' + re.sub('<div>', '</div><div>', request.form['entry_text'], 1)
@@ -84,18 +81,11 @@ def add_entry():
     return render_template('add_entry.html')
 
 
-def filter_entry_text(entry_text):
-    regexp = re.compile(r'<div>')
-    if regexp.search(entry_text) is not None and not entry_text.startswith('<div>'):
-        entry_text = '<div>' + re.sub('<div>', '</div><div>', entry_text, 1)
-    return entry_text
-
-
 @app.route('/edit/<entry_id>', methods=['GET', 'POST'])
 def edit_entry(entry_id=None):
     if request.method == 'POST':
         if 'edit-entry' in request.form:
-            entry_text = filter_entry_text(request.form['entry_text'])
+            entry_text = Helper.filter_entry_text(request.form['entry_text'])
             now_date = time.strftime("%d/%m/%Y")
             now_time = time.strftime("%I:%M %p")
             db.entries.update_one({"_id": ObjectId(entry_id)},
@@ -119,13 +109,26 @@ def full_entry(entry_id=None):
         entries_coll = db.entries
         entry = entries_coll.find_one({"_id": ObjectId(entry_id)})
         if len(entry) != 0:
-            entry = dict(id=entry['_id'],
+            entry = dict(id=str(entry['_id']),
                          author=entry['username'],
                          date=entry['date'],
                          time=entry['time'],
                          title=entry['title'],
                          text=entry['text'],
                          modified=entry['modified'])
+            all_comments_from_db = db.comments.find({"entry_id": entry_id})
+            all_comments = []
+            for comment in all_comments_from_db:
+                all_comments.append(dict(
+                        id=str(comment['_id']),
+                        commenter=comment['commenter'],
+                        entry_id=comment['entry_id'],
+                        comment=comment['comment'],
+                        date=comment['date'],
+                        time=comment['time'],
+                        modified=comment['modified']
+                ))
+            entry['all_comments'] = all_comments
     return render_template('full_entry.html', entry=entry)
 
 
@@ -140,10 +143,9 @@ def login():
         if exists.count() == 0:
             user_does_not_exist = 'User does not exist!'
         else:
-            # TODO: is_logged_in
+            # TODO: is_logged_in / remember-me
             session['logged_in'] = True
             session['username'] = username
-            # flash('You were logged in')
             return redirect(url_for('show_entries'))
 
     return render_template('login.html', user_does_not_exist=user_does_not_exist)
@@ -216,6 +218,38 @@ def register():
                                success=success)
 
     return render_template('register.html')
+
+
+@app.route('/submit_comment', methods=['GET', 'POST'])
+def submit_comment():
+    entry_id = request.args.get('entry_id', '')
+    new_comment = request.args.get('new_comment', '')
+    commenter = request.args.get('commenter', '')
+    now_date = time.strftime("%d/%m/%Y")
+    now_time = time.strftime("%I:%M %p")
+    db.comments.insert_one({"commenter": commenter,
+                            "entry_id": entry_id,
+                            "comment": new_comment,
+                            "date": now_date,
+                            "time": now_time,
+                            "modified": now_date + ', ' + now_time})
+    latest_comment_in_db = db.comments.find({"entry_id": entry_id}).sort([("_id", -1)]).limit(1)
+    latest_comment_id = -1
+    for latest_comment in latest_comment_in_db:
+        latest_comment_id = str(latest_comment['_id'])
+    """all_comments_from_db = db.comments.find({"entry_id": entry_id})
+    all_comments = []
+    for comment in all_comments_from_db:
+        all_comments.append(dict(
+                id=str(comment['_id']),
+                commenter=comment['commenter'],
+                entry_id=comment['entry_id'],
+                comment=comment['comment'],
+                date=comment['date'],
+                time=comment['time'],
+                modified=comment['modified']
+        ))"""
+    return jsonify(id=latest_comment_id, commenter=commenter, comment=new_comment, date=now_date, time=now_time)
 
 
 @app.before_request

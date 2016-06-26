@@ -1,3 +1,4 @@
+# TODO Don't store everything in memory/dict.
 class Paginator:
     def __init__(self, entries_limit):
         self.entries_limit = entries_limit
