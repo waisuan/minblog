@@ -224,6 +224,7 @@ def register():
 def submit_comment():
     entry_id = request.args.get('entry_id', '')
     new_comment = request.args.get('new_comment', '')
+    print new_comment
     commenter = request.args.get('commenter', '')
     now_date = time.strftime("%d/%m/%Y")
     now_time = time.strftime("%I:%M %p")
