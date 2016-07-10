@@ -42,6 +42,11 @@
                 </div>
             </div>
         {% endfor %}
+        {% if entry.has_more_comments %}
+            <ul id="pager-more" class="pager">
+                <li><a id="more" href="javascript:void(0);">More</a></li>
+            </ul>
+        {% endif %}
     </div>
 </div>
 
@@ -60,33 +65,54 @@
     $(function() {
         $("#fullentry-submitcomment-btn").bind('click', function() {
             var new_comment = $( "#fullentry-newcomment" ).val().replace(/\r?\n/g, '<br />');
+            if (!new_comment.trim()) {
+                return false;
+            }
             $.getJSON($SCRIPT_ROOT + '/submit_comment', {
                 entry_id: {{ entry.id|tojson|safe }},
                 new_comment: new_comment,
                 commenter: {{ session.username|tojson|safe }}
-            }, function(comment) {
-                var new_comment_div = `
-                    <div class="fullentry-comment panel panel-default">
-                        <div class="panel-heading">
-                            <h3 class="panel-title">
-                                <a class="fullentry-comment-toggle"
-                                   data-toggle="collapse"
-                                   href="#`+comment.id+`">
-                                    <span class="glyphicon glyphicon-plus"
-                                    style="display:none;"></span>
-                                    <span class="glyphicon glyphicon-minus"></span>
-                                </a> `+comment.commenter+` [`+comment.date+`, `+comment.time+`]
-                            </h3>
+            }, function(data) {
+                $( ".fullentry-comment" ).remove();
+                $( "#pager-more" ).remove();
+
+                var comments = data.comments;
+
+                for (var i = 0; i < comments.length; ++i) {
+                    var new_comment_div = `
+                        <div class="fullentry-comment panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">
+                                    <a class="fullentry-comment-toggle"
+                                       data-toggle="collapse"
+                                       href="#`+comments[i].id+`">
+                                        <span class="glyphicon glyphicon-plus"
+                                        style="display:none;"></span>
+                                        <span class="glyphicon glyphicon-minus"></span>
+                                    </a> `+comments[i].commenter+` [`+comments[i].date+`, `+comments[i].time+`]
+                                </h3>
+                            </div>
+                            <div id="`+comments[i].id+`"
+                                 class="panel-collapse collapse in">
+                                 <div class="panel-body">
+                                    `+comments[i].comment+`
+                                 </div>
+                            </div>
                         </div>
-                        <div id="`+comment.id+`"
-                             class="panel-collapse collapse in">
-                             <div class="panel-body">
-                                `+comment.comment+`
-                             </div>
-                        </div>
-                    </div>
-                `;
-                $( ".fullentry-comment-section" ).append($(new_comment_div).hide().fadeIn());
+                    `;
+
+                    $( ".fullentry-comment-section" ).append($(new_comment_div).hide().fadeIn());
+                }
+
+                if (data.has_more_comments) {
+                    var more = `
+                                <ul id="pager-more" class="pager">
+                                    <li><a id="more" href="javascript:void(0);">More</a></li>
+                                </ul>
+                               `;
+                    $( ".fullentry-comment-section" ).append($(more).hide().fadeIn());
+                }
+
                 //$( "#"+comment.id+"-plus" ).hide();
 
                 //$( ".fullentry-comment-section" ).append("<p>BOO</p>");
@@ -99,6 +125,52 @@
                 }*/
             });
             $( "#fullentry-newcomment" ).val('');
+        });
+
+        $(".fullentry-comment-section").on('click', '#more',  function(e) {
+            //console.log(e);
+            e.preventDefault();
+            $.getJSON($SCRIPT_ROOT + '/load_more_comments', {
+                entry_id: {{ entry.id|tojson|safe }}
+            }, function(more_comments) {
+                $( "#pager-more" ).remove();
+
+                var comments = more_comments.comments;
+                for (var i = 0; i < comments.length; ++i) {
+                    var comment_div = `
+                        <div class="fullentry-comment panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">
+                                    <a class="fullentry-comment-toggle"
+                                       data-toggle="collapse"
+                                       href="#`+comments[i].id+`">
+                                        <span class="glyphicon glyphicon-plus"
+                                        style="display:none;"></span>
+                                        <span class="glyphicon glyphicon-minus"></span>
+                                    </a> `+comments[i].commenter+` [`+comments[i].date+`, `+comments[i].time+`]
+                                </h3>
+                            </div>
+                            <div id="`+comments[i].id+`"
+                                 class="panel-collapse collapse in">
+                                 <div class="panel-body">
+                                    `+comments[i].comment+`
+                                 </div>
+                            </div>
+                        </div>
+                    `;
+
+                    $( ".fullentry-comment-section" ).append($(comment_div).hide().fadeIn());
+                }
+
+                if (more_comments.has_more_comments) {
+                    var more = `
+                                <ul id="pager-more" class="pager">
+                                    <li><a id="more" href="javascript:void(0);">More</a></li>
+                                </ul>
+                               `;
+                    $( ".fullentry-comment-section" ).append($(more).hide().fadeIn());
+                }
+            });
         });
     });
 

@@ -17,7 +17,7 @@
         </div>
         <div id="entry_just_text" class="entry_just_text">
             <p>{{ entry.text|safe }}</p>
-            <a href="#" class="read_more">Continue >></a>
+            <a href="{{ url_for('full_entry', entry_id=entry.id) }}" class="read_more">Continue >></a>
         </div>
         <textarea id="{{ entry.id }}" class="entry_edit_text" name="entry_text">{{ entry.text|safe }}</textarea>
         <!--<p>{{ entry.text|safe }}</p>-->
@@ -44,10 +44,18 @@
 <nav>
     <ul class="pager">
         {% if has_prev_pages %}
-        <li><a href="{{ url_for('show_entries', navigate='prev') }}">Previous</a></li>
+            {% if all_entries %}
+                <li><a href="{{ url_for('show_all_entries', navigate='prev') }}">Previous</a></li>
+            {% else %}
+                <li><a href="{{ url_for('show_user_entries', navigate='prev') }}">Previous</a></li>
+            {% endif %}
         {% endif %}
         {% if has_more_pages %}
-        <li><a href="{{ url_for('show_entries', navigate='next') }}">Next</a></li>
+            {% if all_entries %}
+                <li><a href="{{ url_for('show_all_entries', navigate='next') }}">Next</a></li>
+            {% else %}
+                <li><a href="{{ url_for('show_user_entries', navigate='next') }}">Next</a></li>
+            {% endif %}
         {% endif %}
     </ul>
 </nav>
@@ -92,160 +100,164 @@
 
     var entries_under_edit = {};
     var nicEditors = {};
+    var disable_edit = {{ all_entries|tojson|safe }};
+    if (!disable_edit) {
 
-    $( "div.blogentries" )
-      .mouseenter(function() {
-        var blogentries_id = $( this ).attr('id');
-        var entry_id = $( this ).find(".entry_edit_text").attr('id');
-        var blog_and_entry_id = blogentries_id+'_'+entry_id;
-        console.log(''+blog_and_entry_id);
-        if (!(blog_and_entry_id in entries_under_edit)) {
-            $( this ).find( "#edit" ).css({'margin-top': '10px'});
-            $( this ).find( "#submit-delete" ).css({'margin-top': '10px'});
-            $( this ).find( "#edit" ).show();
-            $( this ).find( "#submit-delete" ).show();
-        }
-      })
-      .mouseleave(function() {
-        var blogentries_id = $( this ).attr('id');
-        var entry_id = $( this ).find(".entry_edit_text").attr('id');
-        var blog_and_entry_id = blogentries_id+'_'+entry_id;
-        if (!(blog_and_entry_id in entries_under_edit)) {
-            $( this ).find( "#edit" ).hide();
-            $( this ).find( "#submit-delete" ).hide();
-        }
-      });
+        $( "div.blogentries" )
+          .mouseenter(function() {
+            var blogentries_id = $( this ).attr('id');
+            var entry_id = $( this ).find(".entry_edit_text").attr('id');
+            var blog_and_entry_id = blogentries_id+'_'+entry_id;
+            console.log(''+blog_and_entry_id);
+            if (!(blog_and_entry_id in entries_under_edit)) {
+                $( this ).find( "#edit" ).css({'margin-top': '10px'});
+                $( this ).find( "#submit-delete" ).css({'margin-top': '10px'});
+                $( this ).find( "#edit" ).show();
+                $( this ).find( "#submit-delete" ).show();
+            }
+          })
+          .mouseleave(function() {
+            var blogentries_id = $( this ).attr('id');
+            var entry_id = $( this ).find(".entry_edit_text").attr('id');
+            var blog_and_entry_id = blogentries_id+'_'+entry_id;
+            if (!(blog_and_entry_id in entries_under_edit)) {
+                $( this ).find( "#edit" ).hide();
+                $( this ).find( "#submit-delete" ).hide();
+            }
+          });
 
-    $("div.blogentries #edit").click(function() {
-        var blogentries_id = $( this ).closest( ".blogentries" ).attr('id');
-        var entry_id = $( this ).closest( ".blogentries" ).find(".entry_edit_text").attr('id');
-        var entry_just_text = $( this ).closest( ".blogentries" ).find("#entry_just_text");
-        var entry_just_title = $( this ).closest( ".blogentries" ).find("#entry_just_title");
-        var entry_edit_title = $( this ).closest( ".blogentries" ).find("#entry_edit_title");
-        var submit_btn = $( this ).closest( ".blogentries" ).find("#submit-edit");
-        var cancel_btn = $( this ).closest( ".blogentries" ).find("#cancel-edit");
-        var delete_btn = $( this ).closest( ".blogentries" ).find("#submit-delete");
+        $("div.blogentries #edit").click(function() {
+            var blogentries_id = $( this ).closest( ".blogentries" ).attr('id');
+            var entry_id = $( this ).closest( ".blogentries" ).find(".entry_edit_text").attr('id');
+            var entry_just_text = $( this ).closest( ".blogentries" ).find("#entry_just_text");
+            var entry_just_title = $( this ).closest( ".blogentries" ).find("#entry_just_title");
+            var entry_edit_title = $( this ).closest( ".blogentries" ).find("#entry_edit_title");
+            var submit_btn = $( this ).closest( ".blogentries" ).find("#submit-edit");
+            var cancel_btn = $( this ).closest( ".blogentries" ).find("#cancel-edit");
+            var delete_btn = $( this ).closest( ".blogentries" ).find("#submit-delete");
 
-        $( this ).hide();
-        $( delete_btn ).hide();
-        $( submit_btn ).show();
-        $( cancel_btn ).show();
-        $( entry_just_text ).hide();
-        //$( "#"+entry_id ).show();
-        $( entry_just_title ).hide();
-        $( entry_edit_title ).show();
+            $( this ).hide();
+            $( delete_btn ).hide();
+            $( submit_btn ).show();
+            $( cancel_btn ).show();
+            $( entry_just_text ).hide();
+            //$( "#"+entry_id ).show();
+            $( entry_just_title ).hide();
+            $( entry_edit_title ).show();
 
-        $( submit_btn ).css({'margin-top': '8px'});
-        $( cancel_btn ).css({'margin-top': '8px'});
-        $("#"+entry_id).css({'width':'100%',
-                             'height': '350px',
-                             'max-height': '350px'});
-        $( entry_edit_title ).css({ 'margin-bottom': '10px',
-                                    'height': 'auto',
-                                    'padding': '10px',
-                                    'font-size': '16px',
-                                    '-webkit-box-sizing': 'border-box',
-                                    '-moz-box-sizing': 'border-box',
-                                    'box-sizing': 'border-box'});
-        if (entry_id in nicEditors) {
-            tinymce.get(entry_id).show();
-        } else {
-            tinymce.init({
-                selector: "#"+entry_id,
-                browser_spellcheck: true,
-                plugins:    [
-                          'advlist autolink link image lists charmap print preview hr anchor pagebreak spellchecker',
-                          'searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking',
-                          'save table contextmenu directionality emoticons template paste textcolor'
-                        ],
-                style_formats:  [
-                                 {title: 'Headers', items: [
-                                  {title: 'Header 1', format: 'h1'},
-                                  {title: 'Header 2', format: 'h2'},
-                                  {title: 'Header 3', format: 'h3'},
-                                  {title: 'Header 4', format: 'h4'},
-                                  {title: 'Header 5', format: 'h5'},
-                                  {title: 'Header 6', format: 'h6'}
-                                 ]},
-                                 {title: 'Blocks', items: [
-                                  {title: 'Paragraph', format: 'p'},
-                                  {title: 'Blockquote', format: 'blockquote'},
-                                  {title: 'Div', format: 'div'},
-                                  {title: 'Pre', format: 'pre'}
-                                 ]},
-                                 {title: 'Alignment', items: [
-                                  {title: 'Left', icon: 'alignleft', format: 'alignleft'},
-                                  {title: 'Center', icon: 'aligncenter', format: 'aligncenter'},
-                                  {title: 'Right', icon: 'alignright', format: 'alignright'},
-                                  {title: 'Justify', icon: 'alignjustify', format: 'alignjustify'}
-                                 ]}
-                                ],
-                menu:   {
-                            edit: {title: 'Edit', items: 'undo redo | cut copy paste pastetext | selectall | searchreplace'},
-                            insert: {title : 'Insert', items : 'link | charmap'},
-                            view: {title : 'View', items : 'visualaid | preview fullscreen'},
-                            format: {title : 'Format', items : 'bold italic underline strikethrough superscript subscript | formats | removeformat'},
-                            table  : {title : 'Table' , items : 'inserttable tableprops deletetable | cell row column'},
-                            tools  : {title : 'Tools' , items : 'code'}
-                        },
-                /*menubar: 'edit insert view format table tools',*/
-                toolbar: 'forecolor fontselect fontsizeselect | bullist numlist outdent indent '
-            });
-            nicEditors[entry_id] = 1;
-        }
-        /*nicEditors[entry_id] = new nicEditor({ maxHeight : 359,
-                                buttonList : [
-                                'fontSize',
-                                'fontFamily',
-                                'fontFormat',
-                                'bold',
-                                'italic',
-                                'underline',
-                                'strikeThrough',
-                                'left',
-                                'center',
-                                'right',
-                                'justify',
-                                'ol',
-                                'ul',
-                                'forecolor',
-                                'indent',
-                                'outdent',
-                                'hr',
-                                'link']
-                                }).panelInstance(
-                                entry_id, {hasPanel : true}
-                                );*/
-        entries_under_edit[blogentries_id+'_'+entry_id] = 1;
-    });
+            $( submit_btn ).css({'margin-top': '8px'});
+            $( cancel_btn ).css({'margin-top': '8px'});
+            $("#"+entry_id).css({'width':'100%',
+                                 'height': '350px',
+                                 'max-height': '350px'});
+            $( entry_edit_title ).css({ 'margin-bottom': '10px',
+                                        'height': 'auto',
+                                        'padding': '10px',
+                                        'font-size': '16px',
+                                        '-webkit-box-sizing': 'border-box',
+                                        '-moz-box-sizing': 'border-box',
+                                        'box-sizing': 'border-box'});
+            if (entry_id in nicEditors) {
+                tinymce.get(entry_id).show();
+            } else {
+                tinymce.init({
+                    selector: "#"+entry_id,
+                    browser_spellcheck: true,
+                    //paste_data_images: true,
+                    plugins:    [
+                              'advlist autolink link image lists charmap print preview hr anchor pagebreak spellchecker',
+                              'searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking',
+                              'save table contextmenu directionality emoticons template paste textcolor'
+                            ],
+                    style_formats:  [
+                                     {title: 'Headers', items: [
+                                      {title: 'Header 1', format: 'h1'},
+                                      {title: 'Header 2', format: 'h2'},
+                                      {title: 'Header 3', format: 'h3'},
+                                      {title: 'Header 4', format: 'h4'},
+                                      {title: 'Header 5', format: 'h5'},
+                                      {title: 'Header 6', format: 'h6'}
+                                     ]},
+                                     {title: 'Blocks', items: [
+                                      {title: 'Paragraph', format: 'p'},
+                                      {title: 'Blockquote', format: 'blockquote'},
+                                      {title: 'Div', format: 'div'},
+                                      {title: 'Pre', format: 'pre'}
+                                     ]},
+                                     {title: 'Alignment', items: [
+                                      {title: 'Left', icon: 'alignleft', format: 'alignleft'},
+                                      {title: 'Center', icon: 'aligncenter', format: 'aligncenter'},
+                                      {title: 'Right', icon: 'alignright', format: 'alignright'},
+                                      {title: 'Justify', icon: 'alignjustify', format: 'alignjustify'}
+                                     ]}
+                                    ],
+                    menu:   {
+                                edit: {title: 'Edit', items: 'undo redo | cut copy paste pastetext | selectall | searchreplace'},
+                                insert: {title : 'Insert', items : 'link | charmap'},
+                                view: {title : 'View', items : 'visualaid | preview fullscreen'},
+                                format: {title : 'Format', items : 'bold italic underline strikethrough superscript subscript | formats | removeformat'},
+                                table  : {title : 'Table' , items : 'inserttable tableprops deletetable | cell row column'},
+                                tools  : {title : 'Tools' , items : 'code'}
+                            },
+                    /*menubar: 'edit insert view format table tools',*/
+                    toolbar: 'forecolor fontselect fontsizeselect | bullist numlist outdent indent '
+                });
+                nicEditors[entry_id] = 1;
+            }
+            /*nicEditors[entry_id] = new nicEditor({ maxHeight : 359,
+                                    buttonList : [
+                                    'fontSize',
+                                    'fontFamily',
+                                    'fontFormat',
+                                    'bold',
+                                    'italic',
+                                    'underline',
+                                    'strikeThrough',
+                                    'left',
+                                    'center',
+                                    'right',
+                                    'justify',
+                                    'ol',
+                                    'ul',
+                                    'forecolor',
+                                    'indent',
+                                    'outdent',
+                                    'hr',
+                                    'link']
+                                    }).panelInstance(
+                                    entry_id, {hasPanel : true}
+                                    );*/
+            entries_under_edit[blogentries_id+'_'+entry_id] = 1;
+        });
 
-    $("div.blogentries #cancel-edit").click(function() {
-        var blogentries_id = $( this ).closest( ".blogentries" ).attr('id');
-        var entry_id = $( this ).closest( ".blogentries" ).find(".entry_edit_text").attr('id');
-        var entry_just_text = $( this ).closest( ".blogentries" ).find("#entry_just_text");
-        var entry_just_title = $( this ).closest( ".blogentries" ).find("#entry_just_title");
-        var entry_edit_title = $( this ).closest( ".blogentries" ).find("#entry_edit_title");
-        var submit_btn = $( this ).closest( ".blogentries" ).find("#submit-edit");
-        var edit_btn = $( this ).closest( ".blogentries" ).find("#edit");
-        var delete_btn = $( this ).closest( ".blogentries" ).find("#submit-delete");
+        $("div.blogentries #cancel-edit").click(function() {
+            var blogentries_id = $( this ).closest( ".blogentries" ).attr('id');
+            var entry_id = $( this ).closest( ".blogentries" ).find(".entry_edit_text").attr('id');
+            var entry_just_text = $( this ).closest( ".blogentries" ).find("#entry_just_text");
+            var entry_just_title = $( this ).closest( ".blogentries" ).find("#entry_just_title");
+            var entry_edit_title = $( this ).closest( ".blogentries" ).find("#entry_edit_title");
+            var submit_btn = $( this ).closest( ".blogentries" ).find("#submit-edit");
+            var edit_btn = $( this ).closest( ".blogentries" ).find("#edit");
+            var delete_btn = $( this ).closest( ".blogentries" ).find("#submit-delete");
 
-        $( this ).hide();
-        $( submit_btn ).hide();
-        $( delete_btn ).show();
-        $( edit_btn ).show();
-        $( entry_just_text ).show();
-        $( entry_just_title ).show();
-        $( entry_edit_title ).hide();
-        /*$("#"+entry_id).css({'width':'',
-                             'height': '',
-                             'max-height': ''});*/
-        /*nicEditors[entry_id].removeInstance(entry_id);*/
-        //$( "#"+entry_id ).hide();
-        /*delete nicEditors[entry_id];*/
-        tinymce.get(entry_id).hide();
-        delete entries_under_edit[blogentries_id+'_'+entry_id];
-    });
+            $( this ).hide();
+            $( submit_btn ).hide();
+            $( delete_btn ).show();
+            $( edit_btn ).show();
+            $( entry_just_text ).show();
+            $( entry_just_title ).show();
+            $( entry_edit_title ).hide();
+            /*$("#"+entry_id).css({'width':'',
+                                 'height': '',
+                                 'max-height': ''});*/
+            /*nicEditors[entry_id].removeInstance(entry_id);*/
+            //$( "#"+entry_id ).hide();
+            /*delete nicEditors[entry_id];*/
+            tinymce.get(entry_id).hide();
+            delete entries_under_edit[blogentries_id+'_'+entry_id];
+        });
 
+    }
 
 </script>
 

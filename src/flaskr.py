@@ -22,7 +22,7 @@ app.config.from_object(__name__)
 # app.secret_key = os.urandom(24)
 client = MongoClient()
 db = client.flaskr
-paginator = Paginator.Paginator(3)
+paginator = Paginator.Paginator(5, 5)
 
 
 def connect_db():
@@ -31,21 +31,18 @@ def connect_db():
 
 @app.route('/')
 @app.route('/<navigate>')
-# @app.route('/<username>')
-def show_entries(navigate=None):
-    curr_user = session['username']
+def show_all_entries(navigate=None):
     if navigate == 'next':
-        all_entries = paginator.page_next(curr_user)
+        all_entries = paginator.page_next(0)
     elif navigate == 'prev':
-        all_entries = paginator.page_prev(curr_user)
+        all_entries = paginator.page_prev(0)
     else:
         entries_coll = db.entries
-        all_entries = entries_coll.find({"username": curr_user})
-        paginator.insert(curr_user, all_entries)
-        all_entries = paginator.page_next(curr_user)
-    # print all_entries
-    has_more_pages = paginator.has_more_pages(curr_user)
-    has_prev_pages = paginator.has_prev_pages(curr_user)
+        all_entries = entries_coll.find().sort([("_id", -1)])  # ascending order
+        paginator.insert(all_entries, 0)
+        all_entries = paginator.page_next(0)
+    has_more_pages = paginator.has_more_pages(0)
+    has_prev_pages = paginator.has_prev_pages(0)
     entries = [dict(id=str(entry['_id']),
                     author=entry['username'],
                     date=entry['date'],
@@ -55,9 +52,42 @@ def show_entries(navigate=None):
                     modified=entry['modified']) for entry in all_entries]
     return render_template('show_entries.html', entries=entries,
                            has_more_pages=has_more_pages,
-                           has_prev_pages=has_prev_pages)
+                           has_prev_pages=has_prev_pages,
+                           all_entries=True)
 
 
+@app.route('/user_entries')
+@app.route('/user_entries/<navigate>')
+def show_user_entries(navigate=None):
+    curr_user = session['username']
+    if navigate == 'next':
+        all_entries = paginator.page_next(curr_user)
+    elif navigate == 'prev':
+        all_entries = paginator.page_prev(curr_user)
+    else:
+        entries_coll = db.entries
+        all_entries = entries_coll.find({"username": curr_user}).sort([("_id", -1)])
+        paginator.insert(all_entries, curr_user)
+        all_entries = paginator.page_next(curr_user)
+    # print all_entries
+    has_more_pages = paginator.has_more_pages(curr_user)
+    has_prev_pages = paginator.has_prev_pages(curr_user)
+    print has_prev_pages
+    print has_more_pages
+    entries = [dict(id=str(entry['_id']),
+                    author=entry['username'],
+                    date=entry['date'],
+                    time=entry['time'],
+                    title=entry['title'],
+                    text=entry['text'],
+                    modified=entry['modified']) for entry in all_entries]
+    return render_template('show_entries.html', entries=entries,
+                           has_more_pages=has_more_pages,
+                           has_prev_pages=has_prev_pages,
+                           all_entries=False)
+
+
+# TODO error-handling
 @app.route('/new', methods=['GET', 'POST'])
 def add_entry():
     # if not session.get('logged_in'):
@@ -86,50 +116,20 @@ def edit_entry(entry_id=None):
     if request.method == 'POST':
         if 'edit-entry' in request.form:
             entry_text = Helper.filter_entry_text(request.form['entry_text'])
-            now_date = time.strftime("%d/%m/%Y")
-            now_time = time.strftime("%I:%M %p")
-            db.entries.update_one({"_id": ObjectId(entry_id)},
-                                  {"$set": {"title": request.form['entry_edit_title'],
-                                            "text": entry_text,
-                                            "modified": now_date + ', ' + now_time}})
+            if entry_text:
+                now_date = time.strftime("%d/%m/%Y")
+                now_time = time.strftime("%I:%M %p")
+                db.entries.update_one({"_id": ObjectId(entry_id)},
+                                      {"$set": {"title": request.form['entry_edit_title'],
+                                                "text": entry_text,
+                                                "modified": now_date + ', ' + now_time}})
         elif 'delete-entry' in request.form:
             delete_entry(entry_id)
-    return redirect(url_for('show_entries'))
+    return redirect(url_for('show_user_entries'))
 
 
 def delete_entry(entry_id=None):
     db.entries.delete_one({"_id": ObjectId(entry_id)})
-
-
-@app.route('/show/<entry_id>', methods=['GET'])
-def full_entry(entry_id=None):
-    entry = None
-    if request.method == 'GET':
-        # print entry_id
-        entries_coll = db.entries
-        entry = entries_coll.find_one({"_id": ObjectId(entry_id)})
-        if len(entry) != 0:
-            entry = dict(id=str(entry['_id']),
-                         author=entry['username'],
-                         date=entry['date'],
-                         time=entry['time'],
-                         title=entry['title'],
-                         text=entry['text'],
-                         modified=entry['modified'])
-            all_comments_from_db = db.comments.find({"entry_id": entry_id})
-            all_comments = []
-            for comment in all_comments_from_db:
-                all_comments.append(dict(
-                        id=str(comment['_id']),
-                        commenter=comment['commenter'],
-                        entry_id=comment['entry_id'],
-                        comment=comment['comment'],
-                        date=comment['date'],
-                        time=comment['time'],
-                        modified=comment['modified']
-                ))
-            entry['all_comments'] = all_comments
-    return render_template('full_entry.html', entry=entry)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -146,7 +146,7 @@ def login():
             # TODO: is_logged_in / remember-me
             session['logged_in'] = True
             session['username'] = username
-            return redirect(url_for('show_entries'))
+            return redirect(url_for('show_all_entries'))
 
     return render_template('login.html', user_does_not_exist=user_does_not_exist)
 
@@ -155,9 +155,10 @@ def login():
 def logout():
     session.pop('logged_in', None)
     # flash('You were logged out')
-    return redirect(url_for('show_entries'))
+    return redirect(url_for('show_all_entries'))
 
 
+# TODO encrypt/hash password before storing in DB
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -220,11 +221,44 @@ def register():
     return render_template('register.html')
 
 
-@app.route('/submit_comment', methods=['GET', 'POST'])
+@app.route('/show/<entry_id>', methods=['GET'])
+def full_entry(entry_id=None):
+    entry = None
+    if request.method == 'GET':
+        # print entry_id
+        entries_coll = db.entries
+        entry = entries_coll.find_one({"_id": ObjectId(entry_id)})
+        if len(entry) != 0:
+            entry = dict(id=str(entry['_id']),
+                         author=entry['username'],
+                         date=entry['date'],
+                         time=entry['time'],
+                         title=entry['title'],
+                         text=entry['text'],
+                         modified=entry['modified'])
+            all_comments_from_db = db.comments.find({"entry_id": entry_id})
+            all_comments = []
+            for comment in all_comments_from_db:
+                all_comments.append(dict(
+                        id=str(comment['_id']),
+                        commenter=comment['commenter'],
+                        entry_id=comment['entry_id'],
+                        comment=comment['comment'],
+                        date=comment['date'],
+                        time=comment['time'],
+                        modified=comment['modified']
+                ))
+            paginator.populate_comments(all_comments, entry_id)
+            entry['all_comments'] = paginator.load_more_comments(entry_id)
+            entry['has_more_comments'] = paginator.has_more_comments(entry_id)
+            # entry['all_comments'] = all_comments
+    return render_template('full_entry.html', entry=entry)
+
+
+@app.route('/submit_comment', methods=['GET'])
 def submit_comment():
     entry_id = request.args.get('entry_id', '')
     new_comment = request.args.get('new_comment', '')
-    print new_comment
     commenter = request.args.get('commenter', '')
     now_date = time.strftime("%d/%m/%Y")
     now_time = time.strftime("%I:%M %p")
@@ -234,23 +268,27 @@ def submit_comment():
                             "date": now_date,
                             "time": now_time,
                             "modified": now_date + ', ' + now_time})
-    latest_comment_in_db = db.comments.find({"entry_id": entry_id}).sort([("_id", -1)]).limit(1)
+    latest_comment_in_db = db.comments.find({"entry_id": entry_id}).sort([("_id", -1)]).limit(1)  # descending order
     latest_comment_id = -1
     for latest_comment in latest_comment_in_db:
         latest_comment_id = str(latest_comment['_id'])
-    """all_comments_from_db = db.comments.find({"entry_id": entry_id})
-    all_comments = []
-    for comment in all_comments_from_db:
-        all_comments.append(dict(
-                id=str(comment['_id']),
-                commenter=comment['commenter'],
-                entry_id=comment['entry_id'],
-                comment=comment['comment'],
-                date=comment['date'],
-                time=comment['time'],
-                modified=comment['modified']
-        ))"""
-    return jsonify(id=latest_comment_id, commenter=commenter, comment=new_comment, date=now_date, time=now_time)
+    return jsonify(comments=paginator.repopulate_comments(dict(
+            id=latest_comment_id,
+            commenter=commenter,
+            entry_id=entry_id,
+            comment=new_comment,
+            date=now_date,
+            time=now_time,
+            modified=now_date + ', ' + now_time
+    ), entry_id), has_more_comments=paginator.has_more_comments(entry_id))
+    # return jsonify(id=latest_comment_id, commenter=commenter, comment=new_comment, date=now_date, time=now_time)
+
+
+@app.route('/load_more_comments', methods=['GET'])
+def load_more_comments():
+    entry_id = request.args.get('entry_id', '')
+    return jsonify(comments=paginator.load_more_comments(entry_id),
+                   has_more_comments=paginator.has_more_comments(entry_id))
 
 
 @app.before_request
