@@ -272,7 +272,7 @@ def submit_comment():
     latest_comment_id = -1
     for latest_comment in latest_comment_in_db:
         latest_comment_id = str(latest_comment['_id'])
-    return jsonify(comments=paginator.repopulate_comments(dict(
+    latest_comment = dict(
             id=latest_comment_id,
             commenter=commenter,
             entry_id=entry_id,
@@ -280,7 +280,9 @@ def submit_comment():
             date=now_date,
             time=now_time,
             modified=now_date + ', ' + now_time
-    ), entry_id), has_more_comments=paginator.has_more_comments(entry_id))
+    )
+    paginator.repopulate_comments(latest_comment, entry_id)
+    return jsonify(latest_comment=latest_comment, has_more_comments=paginator.has_more_comments(entry_id))
     # return jsonify(id=latest_comment_id, commenter=commenter, comment=new_comment, date=now_date, time=now_time)
 
 

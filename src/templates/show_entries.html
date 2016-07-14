@@ -7,9 +7,13 @@
     <form action="{{ url_for('edit_entry', entry_id=entry.id) }}" method=post>
         <div class="entry-header">
             <a class="blogentry-header" href="{{ url_for('full_entry', entry_id=entry.id) }}">
-                <h2 id="entry_just_title"
-                    data-toggle="tooltip" data-placement="left"
-                    title="Modified on: {{ entry.modified }}">{{ entry.title }}</h2>
+                {% if not all_entries %}
+                    <h2 class="entry_just_title"
+                        data-toggle="tooltip" data-placement="left"
+                        title="Modified on: {{ entry.modified }}">{{ entry.title }}</h2>
+                {% else %}
+                    <h2 class="entry_just_title">{{ entry.title }}</h2>
+                {% endif %}
             </a>
             <input type="text" id="entry_edit_title" name="entry_edit_title"
                    class="form-control" value={{ entry.title }}>
@@ -130,7 +134,7 @@
             var blogentries_id = $( this ).closest( ".blogentries" ).attr('id');
             var entry_id = $( this ).closest( ".blogentries" ).find(".entry_edit_text").attr('id');
             var entry_just_text = $( this ).closest( ".blogentries" ).find("#entry_just_text");
-            var entry_just_title = $( this ).closest( ".blogentries" ).find("#entry_just_title");
+            var entry_just_title = $( this ).closest( ".blogentries" ).find(".entry_just_title");
             var entry_edit_title = $( this ).closest( ".blogentries" ).find("#entry_edit_title");
             var submit_btn = $( this ).closest( ".blogentries" ).find("#submit-edit");
             var cancel_btn = $( this ).closest( ".blogentries" ).find("#cancel-edit");
@@ -234,7 +238,7 @@
             var blogentries_id = $( this ).closest( ".blogentries" ).attr('id');
             var entry_id = $( this ).closest( ".blogentries" ).find(".entry_edit_text").attr('id');
             var entry_just_text = $( this ).closest( ".blogentries" ).find("#entry_just_text");
-            var entry_just_title = $( this ).closest( ".blogentries" ).find("#entry_just_title");
+            var entry_just_title = $( this ).closest( ".blogentries" ).find(".entry_just_title");
             var entry_edit_title = $( this ).closest( ".blogentries" ).find("#entry_edit_title");
             var submit_btn = $( this ).closest( ".blogentries" ).find("#submit-edit");
             var edit_btn = $( this ).closest( ".blogentries" ).find("#edit");

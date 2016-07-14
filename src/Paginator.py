@@ -76,15 +76,15 @@ class Paginator:
         """elif new_page_num not in self.p_comments[entry_id]:
             self.p_comments[entry_id]['total_pages'] += 1
             self.p_comments[entry_id][new_page_num] = []"""
-        print total_pages
+        #print total_pages
         self.p_comments[entry_id][total_pages].append(comment)
-        comments_so_far = []
-        print curr_page_num
-        for x in range(0, curr_page_num):
-            for comment in self.p_comments[entry_id][x]:
-                comments_so_far.append(comment)
+        #comments_so_far = []
+        #print curr_page_num
+        #for x in range(0, curr_page_num):
+        #    for comment in self.p_comments[entry_id][x]:
+        #        comments_so_far.append(comment)
         #print comments_so_far
-        return comments_so_far
+        #return comments_so_far
 
     def load_more_comments(self, entry_id):
         curr_page_num = self.p_comments[entry_id]['curr_page_num']

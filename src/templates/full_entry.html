@@ -73,8 +73,8 @@
                 new_comment: new_comment,
                 commenter: {{ session.username|tojson|safe }}
             }, function(data) {
-                $( ".fullentry-comment" ).remove();
                 $( "#pager-more" ).remove();
+                /*$( ".fullentry-comment" ).remove();
 
                 var comments = data.comments;
 
@@ -102,7 +102,7 @@
                     `;
 
                     $( ".fullentry-comment-section" ).append($(new_comment_div).hide().fadeIn());
-                }
+                }*/
 
                 if (data.has_more_comments) {
                     var more = `
@@ -111,6 +111,32 @@
                                 </ul>
                                `;
                     $( ".fullentry-comment-section" ).append($(more).hide().fadeIn());
+                } else {
+                    var latest_comment = data.latest_comment;
+
+                    var new_comment_div = `
+                        <div class="fullentry-comment panel panel-default">
+                            <div class="panel-heading">
+                                <h3 class="panel-title">
+                                    <a class="fullentry-comment-toggle"
+                                       data-toggle="collapse"
+                                       href="#`+latest_comment.id+`">
+                                        <span class="glyphicon glyphicon-plus"
+                                        style="display:none;"></span>
+                                        <span class="glyphicon glyphicon-minus"></span>
+                                    </a> `+latest_comment.commenter+` [`+latest_comment.date+`, `+latest_comment.time+`]
+                                </h3>
+                            </div>
+                            <div id="`+latest_comment.id+`"
+                                 class="panel-collapse collapse in">
+                                 <div class="panel-body">
+                                    `+latest_comment.comment+`
+                                 </div>
+                            </div>
+                        </div>
+                    `;
+
+                    $( ".fullentry-comment-section" ).append($(new_comment_div).hide().fadeIn());
                 }
 
                 //$( "#"+comment.id+"-plus" ).hide();
