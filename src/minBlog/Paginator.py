@@ -60,14 +60,19 @@ class Paginator:
                 self.p_comments[entry_id][page] = []
             self.p_comments[entry_id][page].append(comment)
         self.p_comments[entry_id]['curr_page_num'] = 0
-        #print page
+        # print page
         self.p_comments[entry_id]['total_pages'] = page
+
+    def get_comments(self, entry_id):
+        if entry_id not in self.p_comments:
+            return []
+        return self.p_comments[entry_id]
 
     def repopulate_comments(self, comment, entry_id):
         total_pages = self.p_comments[entry_id]['total_pages']
         curr_page_num = self.p_comments[entry_id]['curr_page_num']
-        #new_page_num = curr_page_num
-        #print new_page_num
+        # new_page_num = curr_page_num
+        # print new_page_num
         if total_pages in self.p_comments[entry_id] and \
                                 len(self.p_comments[entry_id][total_pages]) + 1 > self.entries_limit:
             self.p_comments[entry_id]['total_pages'] += 1
@@ -76,21 +81,21 @@ class Paginator:
         """elif new_page_num not in self.p_comments[entry_id]:
             self.p_comments[entry_id]['total_pages'] += 1
             self.p_comments[entry_id][new_page_num] = []"""
-        #print total_pages
+        # print total_pages
         self.p_comments[entry_id][total_pages].append(comment)
-        #comments_so_far = []
-        #print curr_page_num
-        #for x in range(0, curr_page_num):
+        # comments_so_far = []
+        # print curr_page_num
+        # for x in range(0, curr_page_num):
         #    for comment in self.p_comments[entry_id][x]:
         #        comments_so_far.append(comment)
-        #print comments_so_far
-        #return comments_so_far
+        # print comments_so_far
+        # return comments_so_far
 
     def load_more_comments(self, entry_id):
         curr_page_num = self.p_comments[entry_id]['curr_page_num']
         if curr_page_num > self.p_comments[entry_id]['total_pages']:
             return []
-        #if len(self.p_comments[entry_id][curr_page_num]) == self.comments_limit:
+        # if len(self.p_comments[entry_id][curr_page_num]) == self.comments_limit:
         self.p_comments[entry_id]['curr_page_num'] += 1
         return self.p_comments[entry_id][curr_page_num]
 
@@ -100,11 +105,10 @@ class Paginator:
             return False
         return True
 
-
-#user = 'evan'
-#entries = ['a', 'b', 'c', 'd', 'e']
-#p = Paginator(2)
-#p.insert(user, entries)
-#print p.page(user)
-#print p.page(user)
-#print p.page(user)
+# user = 'evan'
+# entries = ['a', 'b', 'c', 'd', 'e']
+# p = Paginator(2)
+# p.insert(user, entries)
+# print p.page(user)
+# print p.page(user)
+# print p.page(user)

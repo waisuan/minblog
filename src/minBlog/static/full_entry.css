@@ -1,5 +1,5 @@
 .full-entry {
-    max-width:600px;
+    max-width: 600px;
     margin: 0 auto;
 }
 
@@ -7,6 +7,7 @@
     margin-bottom: 12px;
     padding-bottom: 2px;
     border-bottom: 1px solid #e5e5e5;
+    font-family: 'Roboto', sans-serif;
 }
 
 .full-entry .fullentry-text {
@@ -37,4 +38,30 @@
 
 .fullentry-comment a {
     text-decoration: none;
+}
+
+/*.full-entry .fullentry-dropdown {
+    display: block;
+}*/
+
+.full-entry .dropdown .dropdown-toggle {
+    border: none;
+    outline: none;
+    box-shadow: none !important;
+    -webkit-box-shadow: none !important;
+}
+
+.full-entry .dropdown .dropdown-toggle:hover {
+    background: #FFF !important;
+    color: #000 !important;
+}
+
+.full-entry .dropdown .dropdown-toggle:active {
+    background: #FFF !important;
+    color: #000 !important;
+}
+
+.full-entry .dropdown .dropdown-toggle:focus {
+    background: #FFF !important;
+    color: #000 !important;
 }

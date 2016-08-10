@@ -1,0 +1,106 @@
+{% extends "layout.html" %}
+{% block body %}
+    {% if session.logged_in %}
+        <div class="form-login-alert alert alert-danger"
+             role="alert">
+            <strong>Whoa!</strong> You're already logged in!
+        </div>
+    {% else %}
+        <!--{% if error %}<p class=error><strong>Error:</strong> {{ error }}{% endif %}-->
+        <form class="form-horizontal" action="{{ url_for('register') }}" method=post>
+            <h2 class="form-register-heading">Register</h2>
+
+            {% if username_error %}
+                <div class="form-group has-error">
+                    <label for="username" class="col-sm-3 control-label">Username</label>
+                    <div class="col-sm-9">
+                        <input type="text" id="username-error" name="username" class="form-control"
+                               value={{ username }}>
+                        <span id="helpBlock" class="help-block">{{ username_error }}</span>
+                    </div>
+                </div>
+            {% else %}
+                <div class="form-group">
+                    <label for="username" class="col-sm-3 control-label">Username</label>
+                    <div class="col-sm-9">
+                        <input type="text" id="username" name="username" class="form-control" value={{ username }}>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if email_error %}
+                <div class="form-group has-error">
+                    <label for="email" class="col-sm-3 control-label">E-mail</label>
+                    <div class="col-sm-9">
+                        <input type="email" id="email-error" name="email" class="form-control" value={{ email }}>
+                        <span id="helpBlock" class="help-block">{{ email_error }}</span>
+                    </div>
+                </div>
+            {% else %}
+                <div class="form-group">
+                    <label for="email" class="col-sm-3 control-label">E-mail</label>
+                    <div class="col-sm-9">
+                        <input type="email" id="email" name="email" class="form-control" value={{ email }}>
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if passwd_error %}
+                <div class="form-group has-error">
+                    <label for="password" class="col-sm-3 control-label">Password</label>
+                    <div class="col-sm-9">
+                        <input type="password" id="password-error" name="password" class="form-control">
+                        <span id="helpBlock" class="help-block">{{ passwd_error }}</span>
+                    </div>
+                </div>
+            {% else %}
+                <div class="form-group">
+                    <label for="password" class="col-sm-3 control-label">Password</label>
+                    <div class="col-sm-9">
+                        <input type="password" id="password" name="password" class="form-control">
+                    </div>
+                </div>
+            {% endif %}
+
+            {% if confirm_pwd_error %}
+                <div class="form-group has-error">
+                    <label for="confirm_pwd" class="col-sm-3 control-label">Confirm Password</label>
+                    <div class="col-sm-9">
+                        <input type="password" id="confirm_pwd-error" name="confirm_pwd" class="form-control">
+                        <span id="helpBlock" class="help-block">{{ confirm_pwd_error }}</span>
+                    </div>
+                </div>
+            {% else %}
+                <div class="form-group">
+                    <label for="confirm_pwd" class="col-sm-3 control-label">Confirm Password</label>
+                    <div class="col-sm-9">
+                        <input type="password" id="confirm_pwd" name="confirm_pwd" class="form-control" }>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="form-group">
+                <div class="col-sm-offset-3 col-sm-9">
+                    <button type="submit" class="btn btn-lg btn-primary btn-block" value=Register>Register</button>
+                </div>
+                {% if success %}
+                    <div class="form-register-alert col-sm-offset-3 col-sm-9 alert alert-success alert-dismissible"
+                         role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                        <strong>Welcome!</strong> You are registered.
+                    </div>
+                {% endif %}
+                {% if user_exists %}
+                    <div class="form-register-alert col-sm-offset-3 col-sm-9 alert alert-danger alert-dismissible"
+                         role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                                aria-hidden="true">&times;</span></button>
+                        <strong>Oops!</strong> {{ user_exists }}
+                    </div>
+                {% endif %}
+            </div>
+
+        </form>
+    {% endif %}
+{% endblock %}

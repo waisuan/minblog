@@ -1,0 +1,116 @@
+{% extends "layout.html" %}
+{% block body %}
+    {% if session.logged_in %}
+
+        <form class="addentry" action="{{ url_for('add_entry') }}" method=post>
+            <h2 class="addentry-header">New Post</h2>
+            <label for="post_title" class="sr-only">Title</label>
+            <input type="text" id="post_title" name="post_title" class="form-control" placeholder="Title" required
+                   autofocus>
+            <label for="entry_text" class="sr-only">Entry</label>
+            <!-- rows=10 cols=80-->
+            <textarea id="entry_text" name="entry_text"></textarea>
+            <button class="btn btn-lg btn-primary btn-block" type="submit" value=Add>Create</button>
+            {% if success %}
+                <div class="addentry-alert alert alert-success alert-dismissible"
+                     role="alert">
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span
+                            aria-hidden="true">&times;</span></button>
+                    <strong>Done!</strong> Your post has been created!
+                </div>
+            {% endif %}
+            <!--<dl>
+                <dt>Title:
+                <dd><input type=text size=30 name=title>
+                <dt>Text:
+                <dd><textarea name=text rows=5 cols=40></textarea>
+                <dd><input type=submit value=Share>
+            </dl>-->
+        </form>
+
+    {% else %}
+        <div class="jumbotron">
+            <p><a class="btn btn-lg btn-success" href="{{ url_for('login') }}" role="button"><span
+                    class="glyphicon glyphicon-log-in"></span> Login</a></p>
+        </div>
+    {% endif %}
+
+    <script>
+        $(document).ready(function () {
+            tinymce.init({
+                selector: '#entry_text',
+                browser_spellcheck: true,
+                plugins: [
+                    'advlist autolink link image lists charmap print preview hr anchor pagebreak spellchecker',
+                    'searchreplace wordcount visualblocks visualchars code fullscreen insertdatetime media nonbreaking',
+                    'save table contextmenu directionality emoticons template paste textcolor'
+                ],
+                style_formats: [
+                    {
+                        title: 'Headers', items: [
+                        {title: 'Header 1', format: 'h1'},
+                        {title: 'Header 2', format: 'h2'},
+                        {title: 'Header 3', format: 'h3'},
+                        {title: 'Header 4', format: 'h4'},
+                        {title: 'Header 5', format: 'h5'},
+                        {title: 'Header 6', format: 'h6'}
+                    ]
+                    },
+                    {
+                        title: 'Blocks', items: [
+                        {title: 'Paragraph', format: 'p'},
+                        {title: 'Blockquote', format: 'blockquote'},
+                        {title: 'Div', format: 'div'},
+                        {title: 'Pre', format: 'pre'}
+                    ]
+                    },
+                    {
+                        title: 'Alignment', items: [
+                        {title: 'Left', icon: 'alignleft', format: 'alignleft'},
+                        {title: 'Center', icon: 'aligncenter', format: 'aligncenter'},
+                        {title: 'Right', icon: 'alignright', format: 'alignright'},
+                        {title: 'Justify', icon: 'alignjustify', format: 'alignjustify'}
+                    ]
+                    }
+                ],
+                menu: {
+                    edit: {title: 'Edit', items: 'undo redo | cut copy paste pastetext | selectall | searchreplace'},
+                    insert: {title: 'Insert', items: 'link | charmap'},
+                    view: {title: 'View', items: 'visualaid | preview fullscreen'},
+                    format: {
+                        title: 'Format',
+                        items: 'bold italic underline strikethrough superscript subscript | formats | removeformat'
+                    },
+                    table: {title: 'Table', items: 'inserttable tableprops deletetable | cell row column'},
+                    tools: {title: 'Tools', items: 'code'}
+                },
+                /*menubar: 'edit insert view format table tools',*/
+                toolbar: 'forecolor fontselect fontsizeselect | bullist numlist outdent indent '
+            });
+            /*new nicEditor({ maxHeight : 389,
+             buttonList : [
+             'fontSize',
+             'fontFamily',
+             'fontFormat',
+             'bold',
+             'italic',
+             'underline',
+             'strikeThrough',
+             'left',
+             'center',
+             'right',
+             'justify',
+             'ol',
+             'ul',
+             'forecolor',
+             'indent',
+             'outdent',
+             'hr',
+             'link']
+             }).panelInstance(
+             'entry_text', {hasPanel : true}
+             );*/
+        });
+    </script>
+
+{% endblock %}
