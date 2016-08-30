@@ -2,15 +2,16 @@
 from flask import Flask
 from pymongo import MongoClient
 import Paginator
+import os
 
 # configuration
 DEBUG = True
-SECRET_KEY = '\xf6\x82R\xbeK\xa1QD\x03\xaa\x9a-\xd9\x1d\xc0$7XK\x0eo6\x1d\x05'
+#SECRET_KEY = '\xf6\x82R\xbeK\xa1QD\x03\xaa\x9a-\xd9\x1d\xc0$7XK\x0eo6\x1d\x05'
 
 # create our little application :)
 app = Flask(__name__)
 app.config.from_object(__name__)
-# app.secret_key = os.urandom(24)
+app.secret_key = os.urandom(32)
 client = MongoClient()
 db = client.flaskr
 paginator = Paginator.Paginator(5, 5)

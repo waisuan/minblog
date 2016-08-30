@@ -1,3 +1,4 @@
+
 # TODO Don't store everything in memory/dict.
 class Paginator:
     def __init__(self, entries_limit=0, comments_limit=0):
@@ -52,6 +53,7 @@ class Paginator:
 
     def populate_comments(self, comments, entry_id):
         self.p_comments[entry_id] = {}
+        self.p_comments[entry_id]['all'] = comments
         page = 0
         self.p_comments[entry_id][page] = []
         for comment in comments:
@@ -66,7 +68,7 @@ class Paginator:
     def get_comments(self, entry_id):
         if entry_id not in self.p_comments:
             return []
-        return self.p_comments[entry_id]
+        return self.p_comments[entry_id]['all']
 
     def repopulate_comments(self, comment, entry_id):
         total_pages = self.p_comments[entry_id]['total_pages']

@@ -2,7 +2,7 @@
 {% block body %}
     {% if session.logged_in %}
 
-        <div class="full-entry">
+        <div class="fullentry">
             <div class="fullentry-header">
                 <h1>{{ entry.title }}</h1>
                 <p>by: {{ entry.author }} | on: {{ entry.date }}, {{ entry.time }}</p>
@@ -38,7 +38,7 @@
                     </div>
                 {% endif %}
                 {% for comment in entry.all_comments %}
-                    <div class="fullentry-comment panel panel-default">
+                    <div id="_{{ comment.id }}" class="fullentry-comment panel panel-default">
                         <div class="panel-heading">
                             <h3 class="panel-title">
                                 <a class="fullentry-comment-toggle"
@@ -47,6 +47,12 @@
                                     <span class="glyphicon glyphicon-plus"></span>
                                     <span class="glyphicon glyphicon-minus"></span>
                                 </a> {{ comment.commenter }} [{{ comment.date }}, {{ comment.time }}]
+                                {% if  session.username == comment.commenter %}
+                                    [<a id="edit_{{ comment.id }}" class="edit_comment"
+                                        href="javascript:void(0)">Edit</a>]
+                                    [<a id="del_{{ comment.id }}" class="del_comment"
+                                        href="javascript:void(0)">Delete</a>]
+                                {% endif %}
                             </h3>
                         </div>
                         <div id="{{ comment.id }}"
@@ -54,6 +60,18 @@
                             <div class="panel-body">
                                 {{ comment.comment|safe }}
                             </div>
+                        </div>
+                    </div>
+                    <div id="editcomment_{{ comment.id }}"
+                         class="fullentry-editcomment">
+                        <textarea id="editcommentarea_{{ comment.id }}"
+                                  class="fullentry-newcomment">{{ comment.comment|safe }}</textarea>
+                        <div class="fullentry-submitcomment">
+                            <button id="submiteditcomment_{{ comment.id }}"
+                                    class="fullentry-submitcomment-btn btn btn-primary"
+                                    type="submit">
+                                Submit
+                            </button>
                         </div>
                     </div>
                 {% endfor %}
@@ -77,15 +95,90 @@
     <script>
 
         var SCRIPT_ROOT = {{ request.script_root | tojson | safe }};
+        var current_user = {{ session.username | tojson | safe }};
+
+        function create_comment_div(comment) {
+            var comment_div = `
+                        <div id="_` + comment.id + `"
+                             class="fullentry-comment panel panel-default">
+                             <div class="panel-heading">
+                                <h3 class="panel-title">
+                                    <a class="fullentry-comment-toggle"
+                                       data-toggle="collapse"
+                                       href="#` + comment.id + `">
+                                        <span class="glyphicon glyphicon-plus"
+                                        style="display:none;"></span>
+                                        <span class="glyphicon glyphicon-minus"></span>
+                                    </a> ` + comment.commenter + ` [` + comment.date + `, ` + comment.time + `]`;
+
+            if (current_user == comment.commenter) {
+                comment_div = comment_div.concat(` [<a href="#">Edit</a>] [<a href="#">Delete</a>]`);
+            }
+
+            comment_div = comment_div.concat(`</h3>
+                            </div>
+                            <div id="` + comment.id + `"
+                                 class="panel-collapse collapse in">
+                                 <div class="panel-body">
+                                    ` + comment.comment + `
+                                 </div>
+                            </div>
+                        </div>
+                                `);
+            return comment_div;
+        }
 
         $(function () {
-            $("#sort_newest").click(function () {
 
-            });
+            /*$("#sort_newest").click(function () {
+                $.getJSON(SCRIPT_ROOT + '/sort_comments', {
+                    entry_id: {{ entry.id | tojson | safe }},
+                    sort_by: 'asc'
+                }, function (data) {
+                    $("#pager-more").remove();
+                    $(".fullentry-comment").remove();
 
-            $("#sort_latest").click(function () {
+                    var sorted_comments = data.comments;
+                    for (var i = 0; i < sorted_comments.length; ++i) {
 
-            });
+                        var comment_div = create_comment_div(sorted_comments[i]);
+
+                        $(".fullentry-comment-section").append($(comment_div).hide().fadeIn());
+                    }
+                    if (data.has_more_comments) {
+                        var more = `
+                                    <ul id="pager-more" class="pager">
+                                        <li><a id="more" href="javascript:void(0);">More</a></li>
+                                    </ul>`;
+                        $(".fullentry-comment-section").append($(more).hide().fadeIn());
+                    }
+                });
+            });*/
+
+            /*$("#sort_latest").click(function () {
+                $.getJSON(SCRIPT_ROOT + '/sort_comments', {
+                    entry_id: {{ entry.id | tojson | safe }},
+                    sort_by: 'desc'
+                }, function (data) {
+                    $("#pager-more").remove();
+                    $(".fullentry-comment").remove();
+
+                    var sorted_comments = data.comments;
+                    for (var i = 0; i < sorted_comments.length; ++i) {
+
+                        var comment_div = create_comment_div(sorted_comments[i]);
+
+                        $(".fullentry-comment-section").append($(comment_div).hide().fadeIn());
+                    }
+                    if (data.has_more_comments) {
+                        var more = `
+                                    <ul id="pager-more" class="pager">
+                                        <li><a id="more" href="javascript:void(0);">More</a></li>
+                                    </ul>`;
+                        $(".fullentry-comment-section").append($(more).hide().fadeIn());
+                    }
+                });
+            });*/
 
             $("#fullentry-submitcomment-btn").bind('click', function () {
                 var new_comment = $("#fullentry-newcomment").val().replace(/\r?\n/g, '<br />');
@@ -99,35 +192,6 @@
                         },
                         function (data) {
                             $("#pager-more").remove();
-                            /*$( ".fullentry-comment" ).remove();
-
-                             var comments = data.comments;
-
-                             for (var i = 0; i < comments.length; ++i) {
-                             var new_comment_div = `
-                             <div class="fullentry-comment panel panel-default">
-                             <div class="panel-heading">
-                             <h3 class="panel-title">
-                             <a class="fullentry-comment-toggle"
-                             data-toggle="collapse"
-                             href="#`+comments[i].id+`">
-                             <span class="glyphicon glyphicon-plus"
-                             style="display:none;"></span>
-                             <span class="glyphicon glyphicon-minus"></span>
-                             </a> `+comments[i].commenter+` [`+comments[i].date+`, `+comments[i].time+`]
-                             </h3>
-                             </div>
-                             <div id="`+comments[i].id+`"
-                             class="panel-collapse collapse in">
-                             <div class="panel-body">
-                             `+comments[i].comment+`
-                             </div>
-                             </div>
-                             </div>
-                             `;
-
-                             $( ".fullentry-comment-section" ).append($(new_comment_div).hide().fadeIn());
-                             }*/
 
                             if (data.has_more_comments) {
                                 var more = `
@@ -139,28 +203,23 @@
                             } else {
                                 var latest_comment = data.latest_comment;
 
-                                var new_comment_div = `
-                        <div class="fullentry-comment panel panel-default">
-                            <div class="panel-heading">
-                                <h3 class="panel-title">
-                                    <a class="fullentry-comment-toggle"
-                                       data-toggle="collapse"
-                                       href="#` + latest_comment.id + `">
-                                        <span class="glyphicon glyphicon-plus"
-                                        style="display:none;"></span>
-                                        <span class="glyphicon glyphicon-minus"></span>
-                                    </a> ` + latest_comment.commenter + ` [` + latest_comment.date + `, ` + latest_comment.time + `]
-                                </h3>
-                            </div>
-                            <div id="` + latest_comment.id + `"
-                                 class="panel-collapse collapse in">
-                                 <div class="panel-body">
-                                    ` + latest_comment.comment + `
-                                 </div>
-                            </div>
-                        </div>
-                    `;
+                                var sort_dropdown = `
+                                    <div class="dropdown">
+                                        <button class="btn btn-default dropdown-toggle" type="button" id="fullentry-comment-sort"
+                                                data-toggle="dropdown"
+                                                aria-haspopup="true" aria-expanded="true">
+                                            Sort by
+                                            <span class="caret"></span>
+                                        </button>
+                                        <ul class="dropdown-menu" aria-labelledby="fullentry-comment-sort">
+                                            <li><a id="sort_newest" href="javascript:void(0)">Newest</a></li>
+                                            <li><a id="sort_latest" href="javascript:void(0)">Latest</a></li>
+                                        </ul>
+                                    </div>`;
 
+                                var new_comment_div = create_comment_div(latest_comment);
+
+                                $(".fullentry-comment-section").append($(sort_dropdown).hide().fadeIn());
                                 $(".fullentry-comment-section").append($(new_comment_div).hide().fadeIn());
                             }
 
@@ -175,8 +234,7 @@
                              console.log(all_comments[i]['comment']);
                              }*/
                         }
-                )
-                ;
+                );
                 $("#fullentry-newcomment").val('');
             });
 
@@ -191,27 +249,7 @@
 
                             var comments = more_comments.comments;
                             for (var i = 0; i < comments.length; ++i) {
-                                var comment_div = `
-                        <div class="fullentry-comment panel panel-default">
-                            <div class="panel-heading">
-                                <h3 class="panel-title">
-                                    <a class="fullentry-comment-toggle"
-                                       data-toggle="collapse"
-                                       href="#` + comments[i].id + `">
-                                        <span class="glyphicon glyphicon-plus"
-                                        style="display:none;"></span>
-                                        <span class="glyphicon glyphicon-minus"></span>
-                                    </a> ` + comments[i].commenter + ` [` + comments[i].date + `, ` + comments[i].time + `]
-                                </h3>
-                            </div>
-                            <div id="` + comments[i].id + `"
-                                 class="panel-collapse collapse in">
-                                 <div class="panel-body">
-                                    ` + comments[i].comment + `
-                                 </div>
-                            </div>
-                        </div>
-                    `;
+                                var comment_div = create_comment_div(comments[i]);
 
                                 $(".fullentry-comment-section").append($(comment_div).hide().fadeIn());
                             }
@@ -231,6 +269,8 @@
         });
 
         $(document).ready(function () {
+            $(".glyphicon-plus").hide();
+
             $("#fullentry-newcomment").keyup(function () {
                 var empty = false;
 
@@ -244,15 +284,102 @@
                     $("#fullentry-submitcomment-btn").removeAttr('disabled');
                 }
             });
-        });
 
-        $(document).ready(function () {
-            $(".glyphicon-plus").hide();
-        });
+            $(".fullentry-comment-section").on('click', '.fullentry-comment-toggle', function () {
+                $(this).find(".glyphicon-minus").toggle();
+                $(this).find(".glyphicon-plus").toggle();
+            });
 
-        $(".fullentry-comment-section").on('click', '.fullentry-comment-toggle', function () {
-            $(this).find(".glyphicon-minus").toggle();
-            $(this).find(".glyphicon-plus").toggle();
+            $(".fullentry-comment-section").on('click', '#sort_newest', function () {
+                $.getJSON(SCRIPT_ROOT + '/sort_comments', {
+                    entry_id: {{ entry.id | tojson | safe }},
+                    sort_by: 'asc'
+                }, function (data) {
+                    $("#pager-more").remove();
+                    $(".fullentry-comment").remove();
+
+                    var sorted_comments = data.comments;
+                    for (var i = 0; i < sorted_comments.length; ++i) {
+
+                        var comment_div = create_comment_div(sorted_comments[i]);
+
+                        $(".fullentry-comment-section").append($(comment_div).hide().fadeIn());
+                    }
+                    if (data.has_more_comments) {
+                        var more = `
+                                    <ul id="pager-more" class="pager">
+                                        <li><a id="more" href="javascript:void(0);">More</a></li>
+                                    </ul>`;
+                        $(".fullentry-comment-section").append($(more).hide().fadeIn());
+                    }
+                });
+            });
+
+            $(".fullentry-comment-section").on('click', '#sort_latest', function () {
+                $.getJSON(SCRIPT_ROOT + '/sort_comments', {
+                    entry_id: {{ entry.id | tojson | safe }},
+                    sort_by: 'desc'
+                }, function (data) {
+                    $("#pager-more").remove();
+                    $(".fullentry-comment").remove();
+
+                    var sorted_comments = data.comments;
+                    for (var i = 0; i < sorted_comments.length; ++i) {
+
+                        var comment_div = create_comment_div(sorted_comments[i]);
+
+                        $(".fullentry-comment-section").append($(comment_div).hide().fadeIn());
+                    }
+                    if (data.has_more_comments) {
+                        var more = `
+                                    <ul id="pager-more" class="pager">
+                                        <li><a id="more" href="javascript:void(0);">More</a></li>
+                                    </ul>`;
+                        $(".fullentry-comment-section").append($(more).hide().fadeIn());
+                    }
+                });
+            });
+
+            $(".fullentry-comment-section").on('click', '.edit_comment', function () {
+                var comment_id = $(this).attr('id').split("_");
+                console.log(comment_id[1]);
+                //$("#_" + comment_id[1]).remove();
+                $("#_" + comment_id[1]).hide();
+                $("#editcomment_" + comment_id[1]).show();
+
+                $("#editcommentarea_" + comment_id[1]).keyup(function () {
+                    var empty = false;
+                    if ($("#editcommentarea_" + comment_id[1]).val().length == 0) {
+                        empty = true;
+                    }
+                    //console.log(empty);
+                    if (empty) {
+                        $("#submiteditcomment_" + comment_id[1]).attr('disabled', 'disabled');
+                    } else {
+                        $("#submiteditcomment_" + comment_id[1]).removeAttr('disabled');
+                    }
+                });
+
+                $("submiteditcomment_" + {{ comment.id }}).bind('click', function (){
+
+                });
+            });
+
+            /*$("#fullentry-newcomment").keyup(function () {
+                var empty = false;
+
+                if ($("#fullentry-newcomment").val().length == 0) {
+                    empty = true;
+                }
+
+                if (empty) {
+                    $("#fullentry-submitcomment-btn").attr('disabled', 'disabled');
+                } else {
+                    $("#fullentry-submitcomment-btn").removeAttr('disabled');
+                }
+            });*/
+            //submiteditcomment_
+            //editcommentarea_
         });
 
     </script>

@@ -107,12 +107,7 @@
 
         var entries_under_edit = {};
         var nicEditors = {};
-        var disable_edit = {
-        {
-            all_entries | tojson | safe
-        }
-        }
-        ;
+        var disable_edit = {{ all_entries | tojson | safe }};
         if (!disable_edit) {
 
             $("div.blogentries")

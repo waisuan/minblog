@@ -85,7 +85,8 @@ def full_entry(entry_id=None):
                     comment=comment['comment'],
                     date=comment['date'],
                     time=comment['time'],
-                    modified=comment['modified']
+                    modified=comment['modified'],
+                    is_modified=comment['is_modified']
                 ))
             paginator.populate_comments(all_comments, entry_id)
             entry['all_comments'] = paginator.load_more_comments(entry_id)
